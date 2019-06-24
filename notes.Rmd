@@ -1,0 +1,158 @@
+---
+title: "Markov Melding Notes"
+author: "Adam Howes"
+date: "3 May 2019"
+<<<<<<< HEAD
+output: pdf_document
+fontsize: 11pt
+geometry: margin=1.5cm
+=======
+>>>>>>> 338ca835fa6b2fd182e8f80383efe1788f514d24
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Logistic regression
+
+Consider response $Y \in \{0, 1\}$ modelled as $Y \sim \text{Bern}(q)$ and covariates $x \in \mathbb{R}^p$ with
+
+$$
+\log\left(\frac{q(x)}{1-q(x)}\right) = \beta^{T} x,
+$$
+where $\beta \in \mathbb{R}^p$. Then
+
+$$
+q(x) = \frac{\exp \left(\beta^{T} x\right)}{1+ \exp\left(\beta^{T} x\right)}
+$$
+Observe labelled data $\{(x_1, y_1), \ldots, (x_n, y_n)\}$. The likelihood function is
+
+$$
+\mathcal{L}(\beta_{0}, \beta) = \prod_{i=1}^{n} q\left(x_i\right)^{y_i}\left(1-q(x_i)\right)^{1-y_i}
+$$
+Place Gaussian prior on $\beta$ such that
+
+$$
+\beta \sim \mathcal{N}_p(\mu, \text{diag}(\sigma_1^2, \ldots, \sigma_p^2))
+$$
+Then the posterior is proportional to
+
+$$
+p(\beta_0, \beta | y_1, \ldots, y_n) \propto \prod_{j=1}^p\exp\left(\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2\right) \prod_{i=1}^{n} q\left(x_i\right)^{y_i}\left(1-q\left(x_i\right)\right)^{1-y_i}.
+$$
+Taking the logarithm gives
+
+$$
+\log p(\beta_0, \beta | y_1, \ldots, y_n) \propto \sum_{j=0}^p \frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2 +  \sum_{i=1}^{n} {y_i}\log q\left(x_i\right) + (1 - y_i) \log \left(1-q\left(x_i\right)\right)
+$$
+The log-likelihood can be rewritten as
+
+\begin{align*}
+\sum_{i=1}^{n} {y_i}\log q\left(x_i\right) + (1 - y_i) \log \left(1-q\left(x_i\right)\right) 
+&= \sum_{i=1}^{n} {y_i}\log \left(\frac{q\left(x_i\right)}{1-q\left(x_i\right)}\right) + \log \left(1-q\left(x_i\right)\right) \\
+&= \sum_{i=1}^{n} {y_i}\log \left(\frac{q\left(x_i\right)}{1-q\left(x_i\right)}\right) + \log \left(1-q\left(x_i\right)\right) \\
+&= \sum_{i=1}^{n} {y_i}\left(\beta^{T} x\right) - \log \left(1 + \exp(\beta^{T} x)\right)
+\end{align*}
+
+# Monte Carlo
+
+[Johansen (2018)](#ref)
+
+## Metropolis-Hastings sampler
+
+Target density $f$ and starting with $\mathbf{X}^{(0)} :=\left(X_{1}^{(0)}, \ldots, X_{p}^{(0)}\right)$, iterate for $t = 1, 2, \ldots$
+
+1. Draw $\mathbf{X} \sim q\left(\cdot | \mathbf{X}^{(t-1)}\right)$
+2. With probability $\min \left\{1, \frac{f(\mathbf{X}) \cdot q\left(\mathbf{X}^{(t-1)} | \mathbf{X}\right)}{f\left(\mathbf{X}^{(t-1)}\right) \cdot q\left(\mathbf{X} | \mathbf{X}^{(t-1)}\right)}\right\}$ set $\mathbf{X}^{(t)}=\mathbf{X}$, else set $\mathbf{X}^{(t)}=\mathbf{X^{(t-1)}}$
+
+Note that if the proposal $q$ is symmetric (random walk metropolis-hastings) then the acceptance probability simplifies to $\min \left\{1, \frac{f(\mathbf{X})}{f\left(\mathbf{X}^{(t-1)}\right)}\right\}$
+
+## (Random scan) Gibbs sampler
+
+Target density $f$ and starting with $\mathbf{X}^{(0)} :=\left(X_{1}^{(0)}, \ldots, X_{p}^{(0)}\right)$, iterate for $t = 1, 2, \ldots$
+
+1. Draw $j \sim \text{Unif}\{1, \ldots, p\}$
+2. (To-do when I'm at better computer)
+
+# Markov Melding
+
+[Goudie (2018)](#ref)
+
+## Introduction to Markov melding
+
+* Aims of work:
+1. Join submodels $p_m$ into a single joint model
+    + Must implicitly handle two different priors for same quantity
+    + Must handle non-invertible deterministic transformations
+2. Fit the submodels one at a time
+    + Minimize burden on practitioners
+3. Understanding of reverse operation to joining - splitting
+* Models $m = 1, \ldots, M$ each with joint density $p_m(\phi, \psi_m, Y_m)$ where:
+    + $\phi$ is the common parameter linking the models
+    + $\psi_m$ are model specific unobserved parameters
+    + $Y_m$ are model specific observed quantities
+* Join together to create $p(\phi, \psi_1, \ldots, \psi_M, Y_1, \ldots, Y_M)$
+
+## Pooling marginal distributions
+
+* Linear pooling 
+* Logarithmic pooling
+* Product of Experts (special case of logarithmic pooling)
+* Dictatorial pooling
+
+## Inference and computation
+
+Joint posterior, given data $Y_m = y_m$ for $m = 1, \ldots, M$, under Melded model is 
+
+$$p_{\text{meld}}(\phi, \psi_{1}, \ldots, \psi_{M} | y_{1}, \ldots, y_{M}) \propto p_{\text{pool}}(\phi) \prod_{m=1}^{M} \frac{p_{m}\left(\phi, \psi_{m}, y_{m}\right)}{p_{m}(\phi)} $$
+Metropolis-Hastings candidate values $(\phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{M}^{\star})$ drawn from a proposal $q(\phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{M}^{\star} | \phi, \psi_{1}, \ldots, \psi_{M})$ and accepted with probability $\text{min}(1, r)$ where
+
+$$r=\frac{R\left(\phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{M}^{\star}, \phi, \psi_{1}, \ldots, \psi_{M}\right)}
+         {R\left(\phi, \psi_{1}, \ldots, \psi_{M}, \phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{M}^{\star}\right)}$$
+         
+where $R\left(\phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{M}^{\star}, \phi, \psi_{1}, \ldots, \psi_{M}\right)$ is the target-to-proposal density ratio
+
+$$R\left(\phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{M}^{\star}, \phi, \psi_{1}, \ldots, \psi_{M}\right) = p_{\mathrm{pool}}\left(\phi^{\star}\right) \prod_{m=1}^{M} \frac{p_{m}\left(\phi^{\star}, \psi_{m}^{\star}, y_{m}\right)}{p_{m}\left(\phi^{\star}\right)} \times \frac{1}{q\left(\phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{M}^{\star} | \phi, \psi_{1}, \ldots, \psi_{M}\right)}$$
+
+### Metropolis-within-Gibbs 
+
+Sample from the full conditionals using Metropolis-Hastings. 
+
+For each of the **latent parameter updates** ($\psi_m$ for $m=1,\ldots,M$) we have
+
+$$
+R\left(\phi, \psi_{1}, \ldots, \psi_{m}^{\star}, \ldots, \psi_{M}, \phi, \psi_{1}, \ldots, \psi_{M}\right) = p_{\mathrm{pool}}\left(\phi\right) \prod_{j\neq m} \frac{p_{j}\left(\phi, \psi_{j}, y_{j}\right)}{p_{j}\left(\phi\right)} \times \frac{p_{m}\left(\phi, \psi_{m}^{\star}, y_{m}\right)}{p_{m}\left(\phi\right)} \frac{1}{q\left(\psi_{m}^{\star} | \psi_{m}\right)}
+$$
+so that
+$$
+r = \frac{p_{m}\left(\phi, \psi_{m}^{\star}, y_{m}\right) \times \frac{1}{q\left(\psi_{m}^{\star} | \psi_{m}\right)}}{p_{m}\left(\phi, \psi_{m}, y_{m}\right) \times \frac{1}{q\left(\psi_{m} | \psi_{m}^{\star}\right)}}
+$$
+
+and for the **link parameter update**
+
+$$
+R\left(\phi, \psi_{1}, \ldots, \psi_{m}^{\star}, \ldots, \psi_{M}, \phi, \psi_{1}, \ldots, \psi_{M}\right) = p_{\mathrm{pool}}\left(\phi^{\star}\right) \prod_{m=1}^{M} \frac{p_{m}\left(\phi^{\star}, \psi_{m}, y_{m}\right)}{p_{m}\left(\phi^{\star}\right)} \times \frac{1}{q\left(\phi^{\star} | \phi\right)}
+$$
+
+### Multi-stage Metropolis-within-Gibbs
+
+Factorise the pooled prior (can be done in many ways)
+
+$$
+p_{\text{pool}}(\phi) = \prod_{m=1}^{M} p_{\text{pool,}m}(\phi)
+$$
+Define $l$th stage posterior as
+
+$$
+p_{\text {meld,}l}\left(\phi, \psi_{1}, \ldots, \psi_{\ell} | y_{1}, \ldots, y_{\ell}\right) \propto \prod_{m=1}^{\ell}\left(\frac{p_{m}\left(\phi, \psi_{m}, y_{m}\right)}{p_{m}(\phi)} p_{\mathrm{pool}, m}(\phi)\right)
+$$
+**Basis** obtain samples $\left(\phi^{(h, 1)}, \psi_{1}^{(h, 1)}\right)$ for $h=1, \ldots, H_{1}$ from $p_{\text {meld,}1}\left(\phi, \psi_{1} | y_{1}\right)$ (by MCMC typically)
+
+**Inductive** construct a Metropolis-within-Gibbs sampler for $\left(\phi, \psi_{1}, \ldots, \psi_{\ell}\right)$ given the data $\left(y_{1}, \ldots, y_{\ell}\right)$
+
+## References {#ref}
+
+* Johansen, A. (2018). *ST407 Monte Carlo Methods*. University of Warwick course notes 
+* Goudie, R. J. B., A. M. Presanis, D. Lunn, D. De Angelis, and L. Wernisch (2018). *Joining and splitting models with Markov melding. Bayesian Analysis* (to appear)
+* Goudie R. J. B. (2019). *Markov melding: A general method for integrating Bayesian models* RSS Emerging Application Section workshop
