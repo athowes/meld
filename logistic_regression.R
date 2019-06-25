@@ -90,7 +90,7 @@ mh <- function(b, X, mu, sigma, j, scale) {
 }
 
 # Metropolis-within-Gibbs sampler (random scan)
-wmg <- function(b0, X, mu, sigma, scale, nsim) {
+mwg <- function(b0, X, mu, sigma, scale, nsim) {
   p <- length(b0)
   r <- array(NA, c(nsim, p))
   r[1, ] <- b0 # init
@@ -120,16 +120,16 @@ trace_plots_simple <- function(x, nsim) { # Helper function
 #   # This isn't working yet...
 # }
 
-test <- wmg(b, X, mu, sigma, scale = rep(0.1, 6), nsim = 10^4) # But this is starting at roughly the right values...
+test <- mwg(b, X, mu, sigma, scale = rep(0.1, 6), nsim = 10^4) # But this is starting at roughly the right values...
 trace_plots_simple(test, 10^4) # Seems like b2 and b5 are more sticky, maybe reduce scale here? 
 
 scale2 <- c(0.1, 0.0005, 0.1, 0.1, 0.005, 0.1) # Tried a few configurations here to see what looks best
-test2 <- wmg(b, X, mu, sigma, scale = scale2, nsim = 10^4)
+test2 <- mwg(b, X, mu, sigma, scale = scale2, nsim = 10^4)
 trace_plots_simple(test2, 10^4)
 
 # Okay lets give a larger sample size and starting at zero a go
 
-chains <- wmg(rep(0, 6), X, mu, sigma, scale = scale2, nsim = 10^5)
+chains <- mwg(rep(0, 6), X, mu, sigma, scale = scale2, nsim = 10^5)
 trace_plots_simple(chains, 10^5) # 1, 2, 5 could still be improved - not sure how - ask Murray, Pier?
 
 colMeans(chains); b # Pretty close to the ML estimates, so the code is probably correct mostly
@@ -156,8 +156,8 @@ mu2 <- rep(0, p2)
 sigma2 <- rep(0.1, p2)
 
 # Run the samplers
-chains1 <- wmg(b0 = rep(0, 4), X = X1, mu = mu1, sigma = sigma1,
-               scale = scale2[c(1, 2, 5, 6)], nsim = 10000)
+chains1 <- mwg(b0 = rep(0, 4), X = X1, mu = mu1, sigma = sigma1,
+               scale = scale2[c(1, 2, 5, 6)], nsim = 100000)
 
-chains2 <- wmg(b0 = rep(0, 4), X = X2, mu = mu2, sigma = sigma2,
-               scale = scale2[c(1, 3, 4, 6)], nsim = 10000)
+chains2 <- mwg(b0 = rep(0, 4), X = X2, mu = mu2, sigma = sigma2,
+               scale = scale2[c(1, 3, 4, 6)], nsim = 100000)
