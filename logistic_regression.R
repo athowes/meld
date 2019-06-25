@@ -10,6 +10,8 @@ library(rjags)
 con <- url("http://www4.stat.ncsu.edu/~reich/ABA/Code/gambia.RData")
 load(con)
 
+# Exploration -------------------------------------------------------------
+
 dim(X) # 2035 observations of 5 variables
 names(X) # age, netuse, treated, green and phc
 X <- as.matrix(X)
@@ -17,7 +19,7 @@ X <- as.matrix(X)
 Y <- pos # Response variable
 n <- length(Y)
 
-table(Y)
+table(Y) # 1308 without and 727 with
 
 mle <- glm(Y ~ X, family = "binomial") # Logistic regression using MLE
 summary(mle)
@@ -71,46 +73,37 @@ q <- function(x, b) {
   exp(b %*% x) / (1 + exp(b %*% x)) 
 }
 
-nu <- apply(X, 1, function(x) b %*% x) # Vector of linear predictors
-qx <- apply(X, 1, function(x) q(x, b)) # Vector of q(x)
-
-# (proportional to) log posterior
-logpost <- function(b) {
+# (proportional to) log posterior in the indep normals prior case
+logpost <- function(b, X, mu, sigma) {
   logprior <- sum((b - mu)^2 / 2*sigma)
-  nu <- apply(X, 1, function(x) b %*% x)
+  nu <- apply(X, 1, function(x) b %*% x) # Vector of linear predictors
   loglike <- sum(-log(1 + exp(nu))) + sum(nu[Y == 1])
   logprior + loglike
 }
 
 # Function to update jth component of beta via RWMH step
-mh <- function(b, j, scale) {
+mh <- function(b, X, mu, sigma, j, scale) {
   y <- b
   y[j] <- y[j] + rnorm(1, mean = 0, sd = scale[j])
-  a <- exp(logpost(y) - logpost(b)) # Acceptance probability
+  a <- exp(logpost(y, X, mu, sigma) - logpost(b, X, mu, sigma)) # Acceptance probability
   if(a > runif(1)) return(y) else return(b)
 }
 
 # Metropolis-within-Gibbs sampler (random scan)
-wmg <- function(b0, nsim, scale) {
+wmg <- function(b0, X, mu, sigma, scale, nsim) {
   p <- length(b0)
   r <- array(NA, c(nsim, p))
   r[1, ] <- b0 # init
   for(i in 2:nsim) {
     j <- sample(1:p, 1)
-    r[i, ] <- mh(r[i-1, ], j, scale)
+    r[i, ] <- mh(r[i-1, ], X, mu, sigma, j, scale)
   }
   r <- as.data.frame(r)
   names(r) <- sprintf("b%d", 1:p)
   return(r)
 }
 
-start_time <- Sys.time()
-test <- wmg(b, nsim = 10000, scale = rep(0.1, 6)) # But this is starting at roughly the right values...
-end_time <- Sys.time()
-
-end_time - start_time # 1.1 mins
-
-trace_plots <- function(x, nsim) { # Helper function
+trace_plots_simple <- function(x, nsim) { # Helper function
   a <- qplot(x = 1:nsim, y = x$b1, geom = "line")
   b <- qplot(x = 1:nsim, y = x$b2, geom = "line")
   c <- qplot(x = 1:nsim, y = x$b3, geom = "line")
@@ -120,29 +113,51 @@ trace_plots <- function(x, nsim) { # Helper function
   cowplot::plot_grid(a, b, c, d, e, f, ncol = 3)
 }
 
-trace_plots(test, 10000) # Seems like b2 and b5 are more sticky, maybe reduce scale here? 
+# trace_plots <- function(x, p, nsim) { # Helper function
+#   for (i in 1:p) {
+#     assign(paste0("plot", i), qplot(x = 1:nsim, y = x[[paste0("b", i)]], geom = "line"))
+#   }
+#   # This isn't working yet...
+# }
 
-scale2 <- c(0.1, 0.0005, 0.1, 0.1, 0.005, 0.1) # Tried a few configurations to see what looks good
+test <- wmg(b, X, mu, sigma, scale = rep(0.1, 6), nsim = 10^4) # But this is starting at roughly the right values...
+trace_plots_simple(test, 10^4) # Seems like b2 and b5 are more sticky, maybe reduce scale here? 
 
-test2 <- wmg(b, 10000, scale2)
-trace_plots(test2, 10000)
+scale2 <- c(0.1, 0.0005, 0.1, 0.1, 0.005, 0.1) # Tried a few configurations here to see what looks best
+test2 <- wmg(b, X, mu, sigma, scale = scale2, nsim = 10^4)
+trace_plots_simple(test2, 10^4)
 
 # Okay lets give a larger sample size and starting at zero a go
 
-chains <- wmg(rep(0, 6), 100000, scale2)
+chains <- wmg(rep(0, 6), X, mu, sigma, scale = scale2, nsim = 10^5)
+trace_plots_simple(chains, 10^5) # 1, 2, 5 could still be improved - not sure how - ask Murray, Pier?
 
-trace_plots(chains, 100000) # 1, 2, 5 could still be improved - not sure how - ask Murray, Pier?
-
-colMeans(chains); b # Pretty close to the ML estimates, so it's probably getting the right answer
+colMeans(chains); b # Pretty close to the ML estimates, so the code is probably correct mostly
 
 # Subset modelling --------------------------------------------------------
 
-# Now let's try only using a subset of the predictors in each model
+# Now try only using a subset of the predictors in each model
 
 head(X) # Reminder about the variables we have
 
+# Design matrix 1
 X1 <- X[, c(1, 2, 5, 6)] # intercept, age, green and phc
 p1 <- 4
 
-X2 <- x[, c(1, 3, 4, 6)] # intercept netuse, treated and phc
+# Design matrix 2
+X2 <- X[, c(1, 3, 4, 6)] # intercept netuse, treated and phc
 p2 <- 4
+
+# Priors same as in the joint modelling to start with
+mu1 <- rep(0, p1)
+sigma1 <- rep(0.1, p1)
+
+mu2 <- rep(0, p2)
+sigma2 <- rep(0.1, p2)
+
+# Run the samplers
+chains1 <- wmg(b0 = rep(0, 4), X = X1, mu = mu1, sigma = sigma1,
+               scale = scale2[c(1, 2, 5, 6)], nsim = 10000)
+
+chains2 <- wmg(b0 = rep(0, 4), X = X2, mu = mu2, sigma = sigma2,
+               scale = scale2[c(1, 3, 4, 6)], nsim = 10000)
