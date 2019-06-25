@@ -54,7 +54,7 @@ The log-likelihood can be rewritten as
 
 # Monte Carlo
 
-[Johansen (2018)](#ref)
+([Johansen 2018](#ref))
 
 For the following samplers targeting density $f$ and starting with $\mathbf{X}^{(0)} :=\left(X_{1}^{(0)}, \ldots, X_{p}^{(0)}\right)$, iterate for $t = 1, 2, \ldots$
 
@@ -77,9 +77,14 @@ Note that if the proposal $q$ is symmetric (as in random-walk metropolis-hasting
     a) Draw $X_{j} \sim q_j\left(\cdot | \mathbf{X}^{(t-1)}\right)$ and set $\mathbf{X} = \left(X_{1}^{(t-1)}, \ldots, X_j, \ldots,  X_{p}^{(t-1)}\right)$
     b) With probability $\min \left\{1, \frac{f(\mathbf{X}) \cdot q\left(\mathbf{X}^{(t-1)} | \mathbf{X}\right)}{f\left(\mathbf{X}^{(t-1)}\right) \cdot q\left(\mathbf{X} | \mathbf{X}^{(t-1)}\right)}\right\}$ set $\mathbf{X}^{(t)}=\mathbf{X}$, else set $\mathbf{X}^{(t)}=\mathbf{X}^{(t-1)}$
 
+# (Divide-and-Conquer with) Sequential Monte Carlo
+
+* Bayesian network is a directed acyclic graph
+* Factor graphs ([Bishop 2016](#ref)): ``Factor graphs make this decomposition explicit by introducing additional nodes for the factors themselves in addition to the nodes representing the variables.''
+
 # Markov Melding
 
-[Goudie (2018)](#ref)
+([Goudie 2018](#ref))
 
 ## Introduction to Markov melding
 
@@ -155,6 +160,7 @@ $$
 
 ## References {#ref}
 
-* Johansen, A. (2018). *ST407 Monte Carlo Methods*. University of Warwick course notes 
+* Johansen, A. (2018). *ST407 Monte Carlo Methods*. University of Warwick course notes
+* Bishop, C. M. (2006). *Pattern recognition and machine learning*. Springer.
 * Goudie, R. J. B., A. M. Presanis, D. Lunn, D. De Angelis, and L. Wernisch (2018). *Joining and splitting models with Markov melding. Bayesian Analysis* (to appear)
 * Goudie R. J. B. (2019). *Markov melding: A general method for integrating Bayesian models* RSS Emerging Application Section workshop
