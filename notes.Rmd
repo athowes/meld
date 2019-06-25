@@ -2,12 +2,9 @@
 title: "Markov Melding Notes"
 author: "Adam Howes"
 date: "3 May 2019"
-<<<<<<< HEAD
 output: pdf_document
 fontsize: 11pt
 geometry: margin=1.5cm
-=======
->>>>>>> 338ca835fa6b2fd182e8f80383efe1788f514d24
 ---
 
 ```{r setup, include=FALSE}
@@ -59,21 +56,26 @@ The log-likelihood can be rewritten as
 
 [Johansen (2018)](#ref)
 
+For the following samplers targeting density $f$ and starting with $\mathbf{X}^{(0)} :=\left(X_{1}^{(0)}, \ldots, X_{p}^{(0)}\right)$, iterate for $t = 1, 2, \ldots$
+
 ## Metropolis-Hastings sampler
 
-Target density $f$ and starting with $\mathbf{X}^{(0)} :=\left(X_{1}^{(0)}, \ldots, X_{p}^{(0)}\right)$, iterate for $t = 1, 2, \ldots$
-
 1. Draw $\mathbf{X} \sim q\left(\cdot | \mathbf{X}^{(t-1)}\right)$
-2. With probability $\min \left\{1, \frac{f(\mathbf{X}) \cdot q\left(\mathbf{X}^{(t-1)} | \mathbf{X}\right)}{f\left(\mathbf{X}^{(t-1)}\right) \cdot q\left(\mathbf{X} | \mathbf{X}^{(t-1)}\right)}\right\}$ set $\mathbf{X}^{(t)}=\mathbf{X}$, else set $\mathbf{X}^{(t)}=\mathbf{X^{(t-1)}}$
+2. With probability $\min \left\{1, \frac{f(\mathbf{X}) \cdot q\left(\mathbf{X}^{(t-1)} | \mathbf{X}\right)}{f\left(\mathbf{X}^{(t-1)}\right) \cdot q\left(\mathbf{X} | \mathbf{X}^{(t-1)}\right)}\right\}$ set $\mathbf{X}^{(t)}=\mathbf{X}$, else set $\mathbf{X}^{(t)}=\mathbf{X}^{(t-1)}$
 
-Note that if the proposal $q$ is symmetric (random walk metropolis-hastings) then the acceptance probability simplifies to $\min \left\{1, \frac{f(\mathbf{X})}{f\left(\mathbf{X}^{(t-1)}\right)}\right\}$
+Note that if the proposal $q$ is symmetric (as in random-walk metropolis-hastings) then the acceptance probability simplifies to $\min \left\{1, \frac{f(\mathbf{X})}{f\left(\mathbf{X}^{(t-1)}\right)}\right\}$.
 
 ## (Random scan) Gibbs sampler
 
-Target density $f$ and starting with $\mathbf{X}^{(0)} :=\left(X_{1}^{(0)}, \ldots, X_{p}^{(0)}\right)$, iterate for $t = 1, 2, \ldots$
+1. Draw $j \sim \text{Unif}\{1, \ldots, p\}$
+2. Draw $X_{j}^{(t)} \sim f_{X_{j} | X_{-j}}\left(\cdot | X_{1}^{(t-1)}, \ldots, X_{j-1}^{(t-1)}, X_{j+1}^{(t-1)}, \ldots, X_{p}^{(t-1)}\right)$, and set $X_i^{(t)} :=X_i^{(t-1)}$ for all $i \neq j$
+
+## (Random scan) Metropolis-within-Gibbs
 
 1. Draw $j \sim \text{Unif}\{1, \ldots, p\}$
-2. (To-do when I'm at better computer)
+2. 
+    a) Draw $X_{j} \sim q_j\left(\cdot | \mathbf{X}^{(t-1)}\right)$ and set $\mathbf{X} = \left(X_{1}^{(t-1)}, \ldots, X_j, \ldots,  X_{p}^{(t-1)}\right)$
+    b) With probability $\min \left\{1, \frac{f(\mathbf{X}) \cdot q\left(\mathbf{X}^{(t-1)} | \mathbf{X}\right)}{f\left(\mathbf{X}^{(t-1)}\right) \cdot q\left(\mathbf{X} | \mathbf{X}^{(t-1)}\right)}\right\}$ set $\mathbf{X}^{(t)}=\mathbf{X}$, else set $\mathbf{X}^{(t)}=\mathbf{X}^{(t-1)}$
 
 # Markov Melding
 
