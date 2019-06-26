@@ -153,6 +153,18 @@ p1 <- 4
 X2 <- X[, c(1, 3, 4, 6)] # Design matrix 2: intercept netuse, treated and phc
 p2 <- 4
 
+# GLM for model 1
+mle1 <- glm(Y ~ X1 - 1, family = "binomial")
+summary(mle1)
+
+b1 <- mle1$coefficients
+
+# GLM for model 2
+mle2 <- glm(Y ~ X2 - 1, family = "binomial")
+summary(mle2)
+
+b2 <- mle2$coefficients
+
 # Priors same as in the joint modelling to start with (so consistent in the link parameter)
 mu1 <- rep(0, p1)
 sigma1 <- rep(0.1, p1)
@@ -170,3 +182,23 @@ chains2 <- mwg(b0 = rep(0, 4), X = X2, mu = mu2, sigma = sigma2,
                scale = scale2[c(1, 3, 4, 6)], nsim = 10^5)
 names(chains2) <- c("b1", "b3", "b4", "b6") # Correct the naming
 saveRDS(chains2, "results/chains2.Rds")
+
+# Trace-plots
+assign(paste0("m1_plot", 1), qplot(x = 1:100000, y = chains1[[paste0("b", 1)]], geom = "line"))
+assign(paste0("m1_plot", 2), qplot(x = 1:100000, y = chains1[[paste0("b", 2)]], geom = "line"))
+assign(paste0("m1_plot", 5), qplot(x = 1:100000, y = chains1[[paste0("b", 5)]], geom = "line"))
+assign(paste0("m1_plot", 6), qplot(x = 1:100000, y = chains1[[paste0("b", 6)]], geom = "line"))
+
+cowplot::plot_grid(m1_plot1, m1_plot2, m1_plot5, m1_plot6)
+
+assign(paste0("m2_plot", 1), qplot(x = 1:100000, y = chains2[[paste0("b", 1)]], geom = "line"))
+assign(paste0("m2_plot", 3), qplot(x = 1:100000, y = chains2[[paste0("b", 3)]], geom = "line"))
+assign(paste0("m2_plot", 4), qplot(x = 1:100000, y = chains2[[paste0("b", 4)]], geom = "line"))
+assign(paste0("m2_plot", 6), qplot(x = 1:100000, y = chains2[[paste0("b", 6)]], geom = "line"))
+
+cowplot::plot_grid(m2_plot1, m2_plot3, m2_plot4, m2_plot6)
+
+colMeans(chains1); b1
+
+colMeans(chains2); b2 # Still getting close: good!
+
