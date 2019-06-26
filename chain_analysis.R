@@ -9,7 +9,7 @@ cowplot::plot_grid(m1_plot1, m1_plot2, m1_plot5, m1_plot6) # These all look good
 
 colMeans(chains1)
 
-# Sub-model2
+# Sub-model 2
 chains2 <- readRDS("results/chains2.Rds")
 
 for (i in c(1, 3, 4, 6)) {
@@ -19,3 +19,5 @@ for (i in c(1, 3, 4, 6)) {
 cowplot::plot_grid(m2_plot1, m2_plot3, m2_plot4, m2_plot6) # TAlso look good
 
 colMeans(chains2)
+
+#
