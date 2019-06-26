@@ -136,19 +136,23 @@ colMeans(chains); b # Pretty close to the ML estimates, so the code is probably 
 
 # Subset modelling --------------------------------------------------------
 
+head(X) # Reminder about the variables we have
 # Now try only using a subset of the predictors in each model
 
-head(X) # Reminder about the variables we have
+# |   | b1 | b2 | b3 | b4 | b5 | b6 |
+# |---|----|----|----|----|----|----|
+# | 1 | Y  | Y  | N  | N  | Y  | Y  |
+# | 2 | Y  | N  | Y  | Y  | N  | Y  |
 
-# Design matrix 1
-X1 <- X[, c(1, 2, 5, 6)] # intercept, age, green and phc
+# i.e. link parameter is (b1, b6), coefficients corresponding to the intercept term and phc
+
+X1 <- X[, c(1, 2, 5, 6)] # Design matrix 1: intercept, age, green and phc
 p1 <- 4
 
-# Design matrix 2
-X2 <- X[, c(1, 3, 4, 6)] # intercept netuse, treated and phc
+X2 <- X[, c(1, 3, 4, 6)] # Design matrix 2: intercept netuse, treated and phc
 p2 <- 4
 
-# Priors same as in the joint modelling to start with
+# Priors same as in the joint modelling to start with (so consistent in the link parameter)
 mu1 <- rep(0, p1)
 sigma1 <- rep(0.1, p1)
 
@@ -157,7 +161,11 @@ sigma2 <- rep(0.1, p2)
 
 # Run the samplers
 chains1 <- mwg(b0 = rep(0, 4), X = X1, mu = mu1, sigma = sigma1,
-               scale = scale2[c(1, 2, 5, 6)], nsim = 100000)
+               scale = scale2[c(1, 2, 5, 6)], nsim = 10^5)
+names(chains1) <- c("b1", "b2", "b5", "b6") # Correct the naming
+saveRDS(chains1, "results/chains1.Rds")
 
 chains2 <- mwg(b0 = rep(0, 4), X = X2, mu = mu2, sigma = sigma2,
-               scale = scale2[c(1, 3, 4, 6)], nsim = 100000)
+               scale = scale2[c(1, 3, 4, 6)], nsim = 10^5)
+names(chains2) <- c("b1", "b3", "b4", "b6") # Correct the naming
+saveRDS(chains2, "results/chains2.Rds")
