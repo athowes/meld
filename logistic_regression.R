@@ -131,6 +131,7 @@ trace_plots_simple(test2, 10^4)
 
 chains <- mwg(rep(0, 6), X, mu, sigma, scale = scale2, nsim = 10^5)
 trace_plots_simple(chains, 10^5) # 1, 2, 5 could still be improved - not sure how - ask Murray, Pier?
+saveRDS(chains, "results/chains.Rds")
 
 colMeans(chains); b # Pretty close to the ML estimates, so the code is probably correct mostly
 
