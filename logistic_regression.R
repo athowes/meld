@@ -158,7 +158,7 @@ opt_scale1
 opt_scale2
 opt_scale3
 
-my_guess <- c(0.1, 0.0001, 0.0005, 0.05, 0.005, 0.01)
+my_guess <- c(0.175, 0.00025, 0.2, 0.3, 0.005, 0.2)
 
 test2 <- mwg(b, X, mu, sigma, scale = my_guess, nsim = 10^4)
 trace_plots(test2, 10^4)
@@ -166,7 +166,9 @@ test2$accept
 
 # Larger sample size and starting at zero
 full <- mwg(rep(0, 6), X, mu, sigma, scale = my_guess, nsim = 10^5)
-trace_plots(full, 10^5) # 1, 2, 5 could still be improved - not sure how - ask Murray, Pier?
+trace_plots(full, 10^5) # 1, 2, 5 could still be improved but looking better
+full$accept
+
 saveRDS(full, "results/full_model.Rds")
 
 colMeans(full$chain); b # Pretty close to the ML estimates, so the code is probably correct mostly
