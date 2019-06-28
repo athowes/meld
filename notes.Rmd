@@ -36,12 +36,12 @@ $$
 Then the posterior is proportional to
 
 $$
-p(\beta_0, \beta | y_1, \ldots, y_n) \propto \prod_{j=1}^p\exp\left(\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2\right) \prod_{i=1}^{n} q\left(x_i\right)^{y_i}\left(1-q\left(x_i\right)\right)^{1-y_i}.
+p(\beta | y_1, \ldots, y_n) \propto \prod_{j=1}^p\exp\left(\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2\right) \prod_{i=1}^{n} q\left(x_i\right)^{y_i}\left(1-q\left(x_i\right)\right)^{1-y_i}.
 $$
 Taking the logarithm gives
 
 $$
-\log p(\beta_0, \beta | y_1, \ldots, y_n) \propto \sum_{j=0}^p \frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2 +  \sum_{i=1}^{n} {y_i}\log q\left(x_i\right) + (1 - y_i) \log \left(1-q\left(x_i\right)\right)
+\log p(\beta | y_1, \ldots, y_n) \propto \sum_{j=1}^p \frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2 +  \sum_{i=1}^{n} {y_i}\log q\left(x_i\right) + (1 - y_i) \log \left(1-q\left(x_i\right)\right)
 $$
 The log-likelihood can be rewritten as
 
@@ -158,9 +158,52 @@ $$
 
 **Inductive** construct a Metropolis-within-Gibbs sampler for $\left(\phi, \psi_{1}, \ldots, \psi_{\ell}\right)$ given the data $\left(y_{1}, \ldots, y_{\ell}\right)$
 
+# Example: Gambia Malaria Data
+
+The `gambia` dataset from the R package geoR contains observations of 2035 Gambian children. The eight variables measured are:
+
+* `x` the x-coordinate of the village (Universal Transverse Mercator)
+* `y` the y-coordinate of the village (Universal Transverse Mercator)
+* `pos` presence (1) or absence (0) of malaria in a blood sample taken from the child
+* `age` age of the child, in days
+* `netuse` indicator variable denoting whether (1) or not (0) the child regularly sleeps under a bed-net
+* `treated` indicator variable denoting whether (1) or not (0) the bed-net is treated (coded 0 if `netuse` = 0)
+* `green` satellite-derived measure of the green-ness of vegetation in the immediate vicinity of the village (arbitrary units)
+* `phc` indicator variable denoting the presence (1) or absence (0) of a health center in the village
+
+## Full model
+
+Logistic regression of response `pos` on the other variables including an intercept term but excluding the co-ordinates `x` and `y`.
+
+$$
+\log\left(\frac{q(x)}{1-q(x)}\right) = \eta
+$$
+
+$$
+\eta = \beta_1 + \beta_2 \cdot \text{age} + \beta_3 \cdot \text{netuse} + \beta_4 \cdot \text{treated} + \beta_5 \cdot \text{green} + \beta_6 \cdot \text{phc}
+$$
+
+## Split models
+
+|   | $\beta_1$ | $\beta_2$ | $\beta_3$ | $\beta_4$ | $\beta_5$ | $\beta_6$ |
+|---|----|----|----|----|----|----|
+| Submodel 1 | $\checkmark$  | $\checkmark$  |   |   | $\checkmark$  | $\checkmark$  |
+| Submodel 2 | $\checkmark$  |   | $\checkmark$  | $\checkmark$  |   | $\checkmark$  |
+
+The link parameter is $\phi = (\beta_1, \beta_6)$ and model specific parameters are $\psi_1 = (\beta_1, \beta_6)$ and $\psi_2 = (\beta_3, \beta_4)$.
+
+$$
+\eta = \beta_1 + \beta_2 \cdot \text{age} +  \beta_5 \cdot \text{green} + \beta_6 \cdot \text{phc}
+$$
+
+$$
+\eta = \beta_1 + \beta_3 \cdot \text{netuse} + \beta_4 \cdot \text{treated} + \beta_6 \cdot \text{phc}
+$$
+
 ## References {#ref}
 
 * Johansen, A. (2018). *ST407 Monte Carlo Methods*. University of Warwick course notes
 * Bishop, C. M. (2006). *Pattern recognition and machine learning*. Springer.
-* Goudie, R. J. B., A. M. Presanis, D. Lunn, D. De Angelis, and L. Wernisch (2018). *Joining and splitting models with Markov melding. Bayesian Analysis* (to appear)
-* Goudie R. J. B. (2019). *Markov melding: A general method for integrating Bayesian models* RSS Emerging Application Section workshop
+* Goudie, R. J. B., A. M. Presanis, D. Lunn, D. De Angelis, and L. Wernisch (2018). *Joining and splitting models with Markov melding*. Bayesian Analysis (to appear)
+* Goudie R. J. B. (2019). *Markov melding: A general method for integrating Bayesian models*. RSS Emerging Application Section workshop
+* Ribeiro Jr, P. J., & Diggle, P. J. (2001). *geoR: a package for geostatistical analysis*. R news, 1(2), 14-18.
