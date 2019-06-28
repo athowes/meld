@@ -1,24 +1,13 @@
 # Bayesian logistic regression example
 
 options(scipen = 999)
+pacman::p_load(tidyverse, rjags, geoR)
 
-library(tidyverse)
-library(rjags)
-
-# https://www4.stat.ncsu.edu/~reich/ABA/code/GLM
-
-con <- url("http://www4.stat.ncsu.edu/~reich/ABA/Code/gambia.RData")
-load(con)
-
-# Exploration -------------------------------------------------------------
-
+data(gambia)
+X <- as.matrix(gambia[, c(4:8)])
 dim(X) # 2035 observations of 5 variables
-names(X) # age, netuse, treated, green and phc
-X <- as.matrix(X)
-
-Y <- pos # Response variable
+Y <- gambia[, 3] # Response variable
 n <- length(Y)
-
 table(Y) # 1308 without and 727 with
 
 mle <- glm(Y ~ X, family = "binomial") # Logistic regression using MLE
@@ -29,6 +18,7 @@ b <- mle$coefficients
 # Posterior sampling using rjags ------------------------------------------
 
 # Specify the JAGS model
+# https://www4.stat.ncsu.edu/~reich/ABA/code/GLM
 
 logistic_model <- "model{
 
@@ -56,7 +46,6 @@ model <- jags.model(textConnection(logistic_model),
 update(model, 10000)
 
 samp <- coda.samples(model, variable.names = c("beta"), 10000)
-
 
 # Metropolis-within-Gibbs -------------------------------------------------
 
@@ -224,3 +213,5 @@ saveRDS(model2, "results/model2.Rds")
 colMeans(model1$chains); b1
 
 colMeans(model2$chains); b2 # Still getting close: good!
+
+# Markov combination ------------------------------------------------------
