@@ -5,51 +5,17 @@ pacman::p_load(tidyverse, rjags, geoR)
 
 data(gambia)
 X <- as.matrix(gambia[, c(4:8)])
-dim(X) # 2035 observations of 5 variables
 Y <- gambia[, 3] # Response variable
 n <- length(Y)
-table(Y) # 1308 without and 727 with
 
 mle <- glm(Y ~ X, family = "binomial") # Logistic regression using MLE
 summary(mle)
 
 b <- mle$coefficients
 
-# Posterior sampling using rjags ------------------------------------------
-
-# Specify the JAGS model
-# https://www4.stat.ncsu.edu/~reich/ABA/code/GLM
-
-logistic_model <- "model{
-
-  # Likelihood
-
-  for(i in 1:n){
-    Y[i] ~ dbern(q[i])
-    logit(q[i]) <- beta[1] + beta[2]*X[i, 1] + beta[3]*X[i, 2] +
-                   beta[4]*X[i, 3] + beta[5]*X[i, 4] + beta[6]*X[i, 5]
-  }
-
-  # Prior
-
-  for(j in 1:6){
-    beta[j] ~ dnorm(0, 0.1)
-  }
-
-}"
-
-dat <- list(Y = Y, n = n, X = X)
-
-model <- jags.model(textConnection(logistic_model),
-                    data = dat, n.chains = 3, quiet = TRUE)
-
-update(model, 10000)
-
-samp <- coda.samples(model, variable.names = c("beta"), 10000)
+X <- cbind(intercept = 1, X) # Add intercept column to design matrix
 
 # Metropolis-within-Gibbs -------------------------------------------------
-
-X <- cbind(intercept = 1, X) # Add intercept column to design matrix
 
 # The plan is to use Metropolis-within-Gibbs to sample from the posterior
 
@@ -67,7 +33,7 @@ q <- function(x, b) {
 logpost <- function(b, X, mu, sigma) {
   logprior <- sum((b - mu)^2 / 2*sigma)
   nu <- apply(X, 1, function(x) b %*% x) # Vector of linear predictors
-  loglike <- sum(-log(1 + exp(nu))) + sum(nu[Y == 1])
+  loglike <- sum(nu[Y == 1]) + sum(-log(1 + exp(nu)))
   logprior + loglike
 }
 
@@ -167,12 +133,12 @@ colMeans(full$chain); b # Pretty close to the ML estimates, so the code is proba
 head(X) # Reminder about the variables we have
 # Only using a subset of the predictors in each model
 
-# |   | b1 | b2 | b3 | b4 | b5 | b6 |
-# |---|----|----|----|----|----|----|
-# | 1 | Y  | Y  | N  | N  | Y  | Y  |
-# | 2 | Y  | N  | Y  | Y  | N  | Y  |
+# |   | Intercept | b1 | b2 | b3 | b4 | b5 |
+# |---|-----------|----|----|----|----|----|
+# | 1 |     Y     | Y  | N  | N  | Y  | Y  |
+# | 2 |     Y     | N  | Y  | Y  | N  | Y  |
 
-# i.e. link parameter is (b1, b6), coefficients corresponding to the intercept term and phc
+# i.e. link parameter is b5, coefficient corresponding to phc
 
 X1 <- X[, c(1, 2, 5, 6)] # Design matrix 1: intercept, age, green and phc
 p1 <- 4
@@ -215,3 +181,15 @@ colMeans(model1$chains); b1
 colMeans(model2$chains); b2 # Still getting close: good!
 
 # Markov combination ------------------------------------------------------
+
+# 4.1. equation (*) can be calculated by logpost(model1) + logpost(model2) - logprior(beta5)
+# This is only used for the link parameter update
+logtarget <- function(b, X1, X2, mu1, sigma1, mu2, sigma2) {
+  b1 <- b[c(1, 2, 5, 6)]
+  b2 <- b[c(1, 3, 4, 6)]
+  as.numeric(logpost(b1, X1, mu1, sigma1) + 
+             logpost(b2, X2, mu2, sigma2) - 
+             ((b[6] - mu1[4])^2 / 2*sigma1[4])) # Could use either mu1 or mu2 here
+}
+
+logtarget(b, X1, X2, mu1, sigma1, mu2, sigma2)
