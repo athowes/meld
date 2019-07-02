@@ -8,7 +8,7 @@ After to-do:
 - [ ] "Meld" models 1 and 2 (with consistent priors first if this makes sense, then with inconsistent priors) *Break down this task more*
 
 General to-do:
-- [ ] Generalise sampler to be either systematic scan or random scan
+- [x] Generalise sampler to be either systematic-scan or random-scan
 
 ## Meeting 02/07/2019
 After to-do:

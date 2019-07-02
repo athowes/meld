@@ -46,13 +46,17 @@ mh <- function(b, X, mu, sigma, j, scale) {
 }
 
 # Metropolis-within-Gibbs sampler (random scan)
-mwg <- function(b0, X, mu, sigma, scale, nsim) {
+mwg <- function(b0, X, mu, sigma, scale, nsim, random_scan = TRUE) {
   p <- length(b0)
-  r <- array(NA, c(nsim, p))
-  r[1, ] <- b0 # init
-  s <- array(0, c(3, p)) # Acceptance counts
+  r <- array(NA, c(nsim, p)) # For the chain
+  r[1, ] <- b0 # Init chain
+  s <- array(0, c(3, p)) # For acceptance rates
   for(i in 2:nsim) {
-    j <- sample(1:p, 1)
+    if(random_scan) { 
+      j <- sample(1:p, 1) # Random scan
+    } else {
+      j <- (i %% p) + 1 # Systematic scan
+    }
     s[1, j] <- s[1, j] + 1 # Update pick count
     r[i, ] <- mh(r[i-1, ], X, mu, sigma, j, scale)
     if(!identical(r[i, ], r[i-1, ])) s[2, j] <- s[2, j] + 1 # Update accept count
