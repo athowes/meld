@@ -15,7 +15,7 @@ b <- mle$coefficients
 
 X <- cbind(intercept = 1, X) # Add intercept column to design matrix
 
-# Metropolis-within-Gibbs -------------------------------------------------
+# Full model --------------------------------------------------------------
 
 # The plan is to use Metropolis-within-Gibbs to sample from the posterior
 
@@ -58,7 +58,7 @@ mwg <- function(b0, X, mu, sigma, scale, nsim) {
     if(!identical(r[i, ], r[i-1, ])) s[2, j] <- s[2, j] + 1 # Update accept count
   }
   r <- as.data.frame(r)
-  names(r) <- sprintf("b%d", 1:p)
+  names(r) <- sprintf("b%d", 0:(p-1))
   s[3, ] <- s[2, ] / s[1, ] # Acceptance rates
   return(list("chain" = r, "accept" = s))
 }
@@ -69,7 +69,7 @@ accept_rate <- function(b, chains) {
   sum(rowSums(chains - lag) == 0) / nrow(chains)
 }
 
-# Scaling considerations --------------------------------------------------
+# Scaling and running -----------------------------------------------------
 
 trace_plots <- function(x, nsim) { # Helper function
   plot1 <- qplot(x = 1:nsim, y = x$chain$b1, geom = "line")
@@ -109,10 +109,6 @@ opt_scale3 <- find_scale(3)
 
 # This seems not to be working well
 
-opt_scale1
-opt_scale2
-opt_scale3
-
 my_guess <- c(0.175, 0.00025, 0.2, 0.3, 0.005, 0.2)
 
 test2 <- mwg(b, X, mu, sigma, scale = my_guess, nsim = 10^4)
@@ -126,9 +122,9 @@ full$accept
 
 saveRDS(full, "results/full_model.Rds")
 
-colMeans(full$chain); b # Pretty close to the ML estimates, so the code is probably correct mostly
+colMeans(full$chain); b # Pretty close to the ML estimates, so the code is probably correct
 
-# Subset modelling --------------------------------------------------------
+# Subset models -----------------------------------------------------------
 
 head(X) # Reminder about the variables we have
 # Only using a subset of the predictors in each model
@@ -168,12 +164,12 @@ sigma2 <- rep(0.1, p2)
 # Run the samplers
 model1 <- mwg(b0 = rep(0, 4), X = X1, mu = mu1, sigma = sigma1,
                scale = my_guess[c(1, 2, 5, 6)], nsim = 10^5)
-names(model1) <- c("b1", "b2", "b5", "b6") # Correct the naming
+names(model1$chain) <- c("b01", "b1", "b4", "b5") # Correct the naming
 saveRDS(model1, "results/model1.Rds")
 
 model2 <- mwg(b0 = rep(0, 4), X = X2, mu = mu2, sigma = sigma2,
                scale = my_guess[c(1, 3, 4, 6)], nsim = 10^5)
-names(model2) <- c("b1", "b3", "b4", "b6") # Correct the naming
+names(model2$chain) <- c("b02", "b2", "b3", "b5") # Correct the naming
 saveRDS(model2, "results/model2.Rds")
 
 colMeans(model1$chains); b1
