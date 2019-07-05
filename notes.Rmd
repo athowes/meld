@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## 1.1 Monte Carlo
 
-([Johansen 2018](#ref))
+([Johansen, 2018](#ref))
 
 For the following samplers targeting density $f$ and starting with $x^{(0)} :=\left(x_{1}^{(0)}, \ldots, x_{p}^{(0)}\right)$, iterate for $t = 1, 2, \ldots$
 
@@ -63,25 +63,26 @@ Note that if the proposal $q$ is symmetric (as in random-walk metropolis-hasting
     + Again can weight opinions as wishes
     + Externally Bayesian and consistent about independence
     + However, unlike linear, no coherent marginalisation (no pooling satisfies both externally Bayesian and coherent marginalisation)
-* Product of Experts (special case of logarithmic pooling) $f(\theta) \propto \prod_{i=1}^{n} f_i(\theta)$
+* Product of Experts (special case of logarithmic pooling) $f(\theta) \propto \prod_{i=1}^{n} f_i(\theta)$ *To-do: look at Hinton 2002*
 * Unlike supra-Bayesian approach, the result of opinion pooling does not represent the actual beliefs of any individual as so may not behave as one would expect a probability distribution to
 * "In general, while the linear opinion pool has been quite widely used in practice, the logarithmic opinion pool has been largely ignored, perhaps because it is perceived to lead to unrealistically strong aggregated beliefs"
 * Dictatorial pooling $f(\theta) = f_i(\theta)$ for some $i = 1, \ldots, n$ (not mentioned in book)
 * Cooke's method
-* For more about opinion pooling, could look at ([Clemen 1999](#ref)
+* For more about opinion pooling, could look at ([Clemen, 1999](#ref)
 
-## 1.3. ([Smith 2010](#ref)) Chapter 7: Bayesian networks
+## 1.3. Graphical models
+### 1.3.1 ([Smith, 2010](#ref)) Chapter 7: Bayesian networks
 
-### 1.3.1. Relevance, informativeness and independence
+#### 1.3.1.1 Relevance, informativeness and independence
 
 * Client believes that measurement $X$ is irrelevant for predicting $Y$ given the measurement $Z$, written $Y \perp X | Z$ if she believes now that once she learns the value of $Z$ then then measurement of $X$ will provide her with no extra useful information with which to predict the value of $Y$. 
 * In this case, if she is a Bayesian, then she could write her conditional density $p(y | x, z) = p(y | z)$ so that it did not depend on the value of $x$ for all possible values of $(x, y, z)$. Equivalently the joint mass function can be factorised as $p(x, y, z) = p(y | z)p(x | z)p(z)$
 * Two most important and universally applicable rules:
     + Symmetry $Y \perp X | Z \iff X \perp Y | Z$
     + Perfect composition $X \perp (Y, Z) | W \iff X \perp Y | (W, Z) \iff X \perp Z | W$
-* More to-do here, look at some work of Pearl?
+* *To-do: look at some work of Pearl?*
 
-### 1.3.2. Bayesian networks and DAGs
+#### 1.3.1.2. Bayesian networks and DAGs
 
 * Bayesian network is a simple and convenient way of representing a factorisation of a joint pdf of a vector of random variables $\mathbf{X} = (X_1, X_2, \ldots, X_n)$.
 * Always the case that $p(\mathbf{x}) = p(x_1)p(x_2 | x_1)p(x_3 | x_2, x_1) \times \cdots \times p(x_n | x_1, x_2, \ldots, x_{n-1})$ 
@@ -91,7 +92,49 @@ Note that if the proposal $q$ is symmetric (as in random-walk metropolis-hasting
 * Definition: A directed acyclic graph (DAG) $\mathcal{G} = (\mathcal{V}, \mathcal{E})$ with set of vertices $\mathcal{V}$ and set of directed edges $\mathcal{E}$ is a directed graph having no directed cycles
 * Definition: A Bayesian network (BN) on the set of measurements $\{X_1, X_2, \ldots, X_n\}$ is a set of the $n-1$ conditional irrelevance statements together with a DAG $\mathcal{G}$. The set of vertices $\mathcal{G} = \{X_1, X_2, \ldots, X_n\}$ and a directed edge from $X_i$ to $X_j$ is in $\mathcal{E}$ if and only if $i \in Q_j$
 
-# 2. ([Goudie 2018](#ref)) Markov Melding
+### 1.3.2 Factor graphs
+
+* Factor graphs ([Bishop 2016](#ref)): ``Factor graphs make this decomposition explicit by introducing additional nodes for the factors themselves in addition to the nodes representing the variables.''
+
+## 1.4. Misc. reading
+
+### 1.4.1. ([Spiegelhalter, 1995](#ref))
+
+* Meta analysis, also known as systematic overview, is a statistical procedure in which the results of several independent studies are integrated. Aim is to resolve issues that cannot be concluded from a single study alone
+* *Note: [Gelman blog post about why fixed and random effects terminology is confusing]( https://statmodeling.stat.columbia.edu/2005/01/25/why_i_dont_use/)*
+* Fixed-effect analysis: a common effect across studies is estimated
+* Random-effects model: a probability model for individual study effects is assumed
+* "In contrast to the pooled estimate arising from a fixed-effect model, a random-effects meta-analysis assumes that the true effects in each trial are not necessarily equal, but are random observations drawn from some common population distribution"
+
+Let $r^C_i$ denote the number of infections in the control group in trial $i$, arising from $n^C_i$ cases each assumed to have probability $p^C_i$ of developing an infection. Adopt equivalent notation for the treatment group and assume that $\delta_i$ is the true treatment effect on a log-odds scale such that
+
+$$
+\delta_i = \mathrm{logit}(p^T_i) - \mathrm{logit}(p^C_i).
+$$
+The "average" infection rate in the $i$th trial is
+
+$$
+\mu_i = \frac{1}{2} (\mathrm{logit}(p^T_i) + \mathrm{logit}(p^C_i)).
+$$
+Individual trial effects are drawn from some Gaussian population with mean $d$ and variance $\sigma^2$, giving the full model as
+
+\begin{align*}
+r^C_i &\sim \text{Binomial}\left(p^C_i, n^C_i\right) \\
+r^T_i &\sim \text{Binomial}\left(p^T_i, n^T_i\right) \\
+\text{logit}(p^C_i) &= \mu_i - \delta_i/2 \\
+\text{logit}(p^T_i) &= \mu_i + \delta_i/2 \\
+\delta_i &\sim \text{Normal}(d, \sigma^2)
+\end{align*}
+
+* Empirical Bayes' methods estimate $d$ and $\sigma^2$ from the data by moment-matching, then make inferences conditional on these estimates $\hat d$, $\hat \sigma^2$ but this does not propigate uncertainty about the estimates. Instead full Bayes puts priors on the unknown parameters
+* Based on suitable DAG, see Figure 1., the joint distribution is $p(V) = \prod_{v \in V} p(v | \text{pa}(v))$
+* Use Gibbs sampling (BUGS) to perform inference
+
+![*To-do: reproduce this and similar models in Tikz* Solid line is stochastic dependence, dashed line is logical dependence](images/graphical_model.png)
+
+
+
+# 2. ([Goudie, 2018](#ref)) Markov Melding
 
 ## 2.1. Introduction to Markov melding
 
@@ -197,9 +240,9 @@ $$
 
 **Inductive** construct a Metropolis-within-Gibbs sampler for $\left(\phi, \psi_{1}, \ldots, \psi_{\ell}\right)$ given the data $\left(y_{1}, \ldots, y_{\ell}\right)$
 
-# 3. ([Lindsten et al. 2017](#ref)) D&C-SMC
+# 3. ([Lindsten, 2017](#ref)) D&C-SMC
 
-* Factor graphs ([Bishop 2016](#ref)): ``Factor graphs make this decomposition explicit by introducing additional nodes for the factors themselves in addition to the nodes representing the variables.''
+*To-do*
 
 # 4. Example: Gambia Malaria Data
 
@@ -367,6 +410,7 @@ Want to sample from the target (*) using the methods described in ([Goudie 2018]
 * O'Hagan, A. et al. (2006). *Uncertain Judgements: Eliciting Experts' Probabilities*. Chichester: John Wiley & Sons.
 * Clemen, R. T., & Winkler, R. L. (1999). *Combining probability distributions from experts in risk analysis*. Risk analysis, 19(2), 187-203.
 * Smith, J. Q. (2010). *Bayesian decision analysis: principles and practice*. Cambridge University Press.
+* Smith, T. C., Spiegelhalter, D. J., & Thomas, A. (1995). *Bayesian approaches to random‐effects meta‐analysis: a comparative study*. Statistics in medicine, 14(24), 2685-2699.
 * Lindsten, F., Johansen, A. M., Naesseth, C. A., Kirkpatrick, B., Schön, T. B., Aston, J. A. D., & Bouchard-Côté, A. (2017). Divide-and-conquer with sequential Monte Carlo. Journal of Computational and Graphical Statistics, 26(2), 445-458.
 * Bishop, C. M. (2006). *Pattern recognition and machine learning*. springer.
 * Goudie, R. J. B., A. M. Presanis, D. Lunn, D. De Angelis, and L. Wernisch (2018). *Joining and splitting models with Markov melding*. Bayesian Analysis (to appear)
