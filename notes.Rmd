@@ -97,8 +97,7 @@ Note that if the proposal $q$ is symmetric (as in random-walk metropolis-hasting
 * Factor graphs ([Bishop 2016](#ref)): ``Factor graphs make this decomposition explicit by introducing additional nodes for the factors themselves in addition to the nodes representing the variables.''
 
 ## 1.4. Misc. reading
-
-### 1.4.1. ([Spiegelhalter, 1995](#ref))
+### 1.4.1. ([Spiegelhalter, 1995](#ref)) Bayesian approaches to random-effects meta-analysis
 
 * Meta analysis, also known as systematic overview, is a statistical procedure in which the results of several independent studies are integrated. Aim is to resolve issues that cannot be concluded from a single study alone
 * *Note: [Gelman blog post about why fixed and random effects terminology is confusing]( https://statmodeling.stat.columbia.edu/2005/01/25/why_i_dont_use/)*
@@ -132,8 +131,32 @@ r^T_i &\sim \text{Binomial}\left(p^T_i, n^T_i\right) \\
 
 ![*To-do: reproduce this and similar models in Tikz* Solid line is stochastic dependence, dashed line is logical dependence](images/graphical_model.png)
 
+### 1.4.2. ([Fleiss, 1993](#ref)) The statistical basis of meta-analysis
 
+* $C$ denote the total number of studies to be analyzed, $c = 1, \ldots, C$
+    + First approach: take these $C$ studies as the only ones of interest
+    + Second approach: take the $C$ studies as a sample from a larger population of studies (fixed vs random set of studies)
+* 
 
+### 1.4.3. ([Kennedy, 2001](#ref)) Bayesian calibration of computer models
+
+* Calibration: the activity of adjusting the unknown rate parameters until the outputs of the model fit the observed data
+* Bayesian approach with unknown inputs as parameter vector $\theta$
+* Uncertainties in computer models
+    + Parameter uncertainty: uncertainty about the values of some of the computer code inputs
+    + Model inadequacy: no model is perfect. Can't predict the true value of the process (Note that this is not about stochasticity of the process, define model inadequacy to be difference between true mean value of the real world process and the code output at the true values of inputs)
+    + Residual variability: the real process may not always take the same value for the same repeated inputs. This incompases potential inherent unpredictability, but it may also be that this variation would be eliminated or reduced if only more input conditions were recognised and specified within the model.
+    + Parametric variability: prediction with random parametric inputs (my interpretation)
+    + Observation error: uncertainty about the observations used for calibration
+    + Code uncertainty
+* Objective of uncertainty analysis is to study the distribution of the code output that is induced by probability distributions on inputs. Simple Monte Carlo approach: draw configurations of inputs at random from their distribution and run code for each sample input. LHS is better than random sample
+* Sensitivity analysis aims to characterize how the code output responds to changes in the inputs
+* Generalised likelihood uncertainty estimation: MC sample from prior on unknown inputs, predictions made using this sample weighted by likelihood
+* Craig et al. (1992) calibration adopting Bayes linear philosophy (Goldstein)
+* Raftery et al. (1995) an attempt to combine prior expert opinion on both the calibration parameters and the model output: Bayesian synthesis. Critizised by Wolpert (1995) and Schweder and Hjort (1996), and in a follow-up paper Poole and Raftery (1998) propose Bayesian melding. Neither method explicitly recognises model inadequacy (!!) - related to link parameter discussions?
+* You can use $f(\cdot) \sim \mathcal{GP}(m(\cdot), k(\cdot, \cdot))$ to model unknown functions as random 
+
+### 1.4.4. ([Poole, 2000](#ref)) Inference for deterministic simulation models: the Bayesian melding approach
 # 2. ([Goudie, 2018](#ref)) Markov Melding
 
 ## 2.1. Introduction to Markov melding
@@ -406,13 +429,16 @@ Want to sample from the target (*) using the methods described in ([Goudie 2018]
 
 # References {#ref}
 
-* Johansen, A. (2018). *ST407 Monte Carlo Methods*. University of Warwick course notes
-* O'Hagan, A. et al. (2006). *Uncertain Judgements: Eliciting Experts' Probabilities*. Chichester: John Wiley & Sons.
-* Clemen, R. T., & Winkler, R. L. (1999). *Combining probability distributions from experts in risk analysis*. Risk analysis, 19(2), 187-203.
-* Smith, J. Q. (2010). *Bayesian decision analysis: principles and practice*. Cambridge University Press.
-* Smith, T. C., Spiegelhalter, D. J., & Thomas, A. (1995). *Bayesian approaches to random‐effects meta‐analysis: a comparative study*. Statistics in medicine, 14(24), 2685-2699.
-* Lindsten, F., Johansen, A. M., Naesseth, C. A., Kirkpatrick, B., Schön, T. B., Aston, J. A. D., & Bouchard-Côté, A. (2017). Divide-and-conquer with sequential Monte Carlo. Journal of Computational and Graphical Statistics, 26(2), 445-458.
-* Bishop, C. M. (2006). *Pattern recognition and machine learning*. springer.
-* Goudie, R. J. B., A. M. Presanis, D. Lunn, D. De Angelis, and L. Wernisch (2018). *Joining and splitting models with Markov melding*. Bayesian Analysis (to appear)
-* Goudie R. J. B. (2019). *Markov melding: A general method for integrating Bayesian models*. RSS Emerging Application Section workshop
-* Ribeiro Jr, P. J., & Diggle, P. J. (2001). *geoR: a package for geostatistical analysis*. R news, 1(2), 14-18.
+* Johansen, A. (2018). ST407 Monte Carlo Methods. University of Warwick course notes
+* O'Hagan, A. et al. (2006). Uncertain Judgements: Eliciting Experts' Probabilities. Chichester: John Wiley & Sons.
+* Clemen, R. T., & Winkler, R. L. (1999). Combining probability distributions from experts in risk analysis. Risk analysis, 19(2), 187-203.
+* Smith, J. Q. (2010). Bayesian decision analysis: principles and practice. Cambridge University Press.
+* Smith, T. C., Spiegelhalter, D. J., & Thomas, A. (1995). Bayesian approaches to random-effects meta-analysis: a comparative study. Statistics in medicine, 14(24), 2685-2699.
+* Fleiss, J. L. (1993). Review papers: The statistical basis of meta-analysis. Statistical methods in medical research, 2(2), 121-145.
+* Kennedy, M. C., & O'Hagan, A. (2001). Bayesian calibration of computer models. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 63(3), 425-464.
+* Poole, D., & Raftery, A. E. (2000). Inference for deterministic simulation models: the Bayesian melding approach. Journal of the American Statistical Association, 95(452), 1244-1255.
+* Lindsten, F., Johansen, A. M., Naesseth, C. A., Kirkpatrick, B., Schon, T. B., Aston, J. A. D., & Bouchard-Cote, A. (2017). Divide-and-conquer with sequential Monte Carlo. Journal of Computational and Graphical Statistics, 26(2), 445-458.
+* Bishop, C. M. (2006). Pattern recognition and machine learning. springer.
+* Goudie, R. J. B., A. M. Presanis, D. Lunn, D. De Angelis, and L. Wernisch (2018). Joining and splitting models with Markov melding. Bayesian Analysis (to appear)
+* Goudie R. J. B. (2019). Markov melding: A general method for integrating Bayesian models*. RSS Emerging Application Section workshop
+* Ribeiro Jr, P. J., & Diggle, P. J. (2001). geoR: a package for geostatistical analysis. R news, 1(2), 14-18.
