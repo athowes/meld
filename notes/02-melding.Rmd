@@ -34,7 +34,7 @@ Notes from [@goudie2019joining].
 
 ## Markov combination
 
-*To-do: add references to Dawid, Massa*
+Goudie cites [@dawid1993hyper] and [@massa2010combining]. *To-do: look more into these*
 
 Suppose that the marginals are consistent i.e. $p_m(\phi) = p(\phi)$ for all $m$ then one can define the Markov combination $p_\text{comb}$ of submodels $p_1, \ldots, p_m$ as
 
