@@ -1,0 +1,15 @@
+--- 
+title: "Markov Melding Notes"
+author: "Adam Howes"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+output: bookdown::gitbook
+documentclass: book
+bibliography: [citations.bib]
+biblio-style: apalike
+link-citations: yes
+---
+
+# Notation
+
+Captial $X$ is a random variable, $\mathbf{X}$ is a vector of random variables and $x$ and $\mathbf{x}$ are their realisations

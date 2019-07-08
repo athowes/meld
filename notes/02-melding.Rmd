@@ -1,0 +1,107 @@
+# Markov Melding
+
+Notes from [@goudie2019joining].
+
+## Introduction to Markov melding
+
+* Motivation: by using all available data typically get:
+    + More precise estimates
+    + More accurate reflection of true uncertainty
+    + Minimise risk of selection-type biases
+* Modular approaches
+    1. Plug in a point estimate
+        + Very easy and fast
+        + Underestimates uncertainty
+    2. Plug in an approximation to the posterior
+        + Quite easy and fast
+        + Assumptions made can be unclear
+    3. Integrate the models
+        + All uncertainty propagated
+        + All assumptions explicit
+        + Probably tricky to do
+* Aims of work:
+    1. Join submodels $p_m$ into a single joint model
+        + Must implicitly handle two different priors for same quantity
+        + Must handle non-invertible deterministic transformations
+    2. Fit the submodels one at a time
+        + Minimize burden on practitioners
+    3. Understanding of reverse operation to joining - splitting
+* Models $m = 1, \ldots, M$ each with joint density $p_m(\phi, \psi_m, Y_m)$ where:
+    + $\phi$ is the common parameter linking the models
+    + $\psi_m$ are model specific unobserved parameters
+    + $Y_m$ are model specific observed quantities
+* Join together to create $p(\phi, \psi_1, \ldots, \psi_M, Y_1, \ldots, Y_M)$
+
+## Markov combination
+
+*To-do: add references to Dawid, Massa*
+
+Suppose that the marginals are consistent i.e. $p_m(\phi) = p(\phi)$ for all $m$ then one can define the Markov combination $p_\text{comb}$ of submodels $p_1, \ldots, p_m$ as
+
+\begin{align*}
+p_{\mathrm{comb}}\left(\phi, \psi_1, \ldots, \psi_M, Y_1, \ldots, Y_M\right) &= p(\phi) \prod_{m=1}^{M} p_m\left(\psi_m, Y_m | \phi\right) \\
+&= p(\phi) \prod_{m=1}^{M} \frac{p_m\left(\phi, \psi_m, Y_m\right)}{p(\phi)} \\
+&= \frac{\prod_{m=1}^{M} p_m\left(\phi, \psi_m, Y_m\right)}{p(\phi)^{M-1}}
+\end{align*}
+
+## Pooling marginal distributions
+
+If the marginals are inconsistent then instead a pooled density $p_\text{pool}(\phi) = g(p_1(\phi), \ldots, p_M(\phi))$ can be used instead. Similar idea to combining expert opinions. This suggests the joint model
+\begin{align*}
+p_{\text{meld}}\left(\phi, \psi_{1}, \ldots, \psi_{M}, Y_{1}, \ldots, Y_{M}\right) &= p_{\text{pool}}(\phi) \prod_{m=1}^{M} p_{m}\left(\psi_{m}, Y_{m} | \phi\right) \\
+&= p_{\text{pool}}(\phi) \prod_{m=1}^{M} \frac{p_{m}\left(\phi, \psi_{m}, Y_{m}\right)}{p_m(\phi)}
+\end{align*}
+
+Goudie calls this Markov melding.
+
+## Inference and computation
+
+Joint posterior, given data $Y_m = y_m$ for $m = 1, \ldots, M$, under Melded model is 
+$$
+p_{\text{meld}}(\phi, \psi_{1}, \ldots, \psi_{M} | y_{1}, \ldots, y_{M}) \propto p_{\text{pool}}(\phi) \prod_{m=1}^{M} \frac{p_{m}\left(\phi, \psi_{m}, y_{m}\right)}{p_{m}(\phi)}
+$$
+
+Metropolis-Hastings candidate values $(\phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{M}^{\star})$ drawn from a proposal $q(\phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{M}^{\star} | \phi, \psi_{1}, \ldots, \psi_{M})$ and accepted with probability $\text{min}(1, r)$ where
+$$
+r=\frac{R\left(\phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{M}^{\star}, \phi, \psi_{1}, \ldots, \psi_{M}\right)}
+         {R\left(\phi, \psi_{1}, \ldots, \psi_{M}, \phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{M}^{\star}\right)}
+$$
+         
+where $R\left(\phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{M}^{\star}, \phi, \psi_{1}, \ldots, \psi_{M}\right)$ is the target-to-proposal density ratio
+$$
+R\left(\phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{M}^{\star}, \phi, \psi_{1}, \ldots, \psi_{M}\right) = p_{\mathrm{pool}}\left(\phi^{\star}\right) \prod_{m=1}^{M} \frac{p_{m}\left(\phi^{\star}, \psi_{m}^{\star}, y_{m}\right)}{p_{m}\left(\phi^{\star}\right)} \times \frac{1}{q\left(\phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{M}^{\star} | \phi, \psi_{1}, \ldots, \psi_{M}\right)}
+$$
+
+### Metropolis-within-Gibbs 
+
+Sample from the full conditionals using Metropolis-Hastings. 
+
+For each of the latent parameter updates ($\psi_m$ for $m=1,\ldots,M$) we have
+$$
+R\left(\phi, \psi_{1}, \ldots, \psi_{m}^{\star}, \ldots, \psi_{M}, \phi, \psi_{1}, \ldots, \psi_{M}\right) = p_{\mathrm{pool}}\left(\phi\right) \prod_{j\neq m} \frac{p_{j}\left(\phi, \psi_{j}, y_{j}\right)}{p_{j}\left(\phi\right)} \times \frac{p_{m}\left(\phi, \psi_{m}^{\star}, y_{m}\right)}{p_{m}\left(\phi\right)} \frac{1}{q\left(\psi_{m}^{\star} | \psi_{m}\right)}
+$$
+
+so that
+$$
+r = \frac{p_{m}\left(\phi, \psi_{m}^{\star}, y_{m}\right) \times \frac{1}{q\left(\psi_{m}^{\star} | \psi_{m}\right)}}{p_{m}\left(\phi, \psi_{m}, y_{m}\right) \times \frac{1}{q\left(\psi_{m} | \psi_{m}^{\star}\right)}}
+$$
+
+and for the link parameter update
+$$
+R\left(\phi, \psi_{1}, \ldots, \psi_{m}^{\star}, \ldots, \psi_{M}, \phi, \psi_{1}, \ldots, \psi_{M}\right) = p_{\mathrm{pool}}\left(\phi^{\star}\right) \prod_{m=1}^{M} \frac{p_{m}\left(\phi^{\star}, \psi_{m}, y_{m}\right)}{p_{m}\left(\phi^{\star}\right)} \times \frac{1}{q\left(\phi^{\star} | \phi\right)}
+$$
+
+### Multi-stage Metropolis-within-Gibbs
+
+Factorise the pooled prior (can be done in many ways)
+$$
+p_{\text{pool}}(\phi) = \prod_{m=1}^{M} p_{\text{pool,}m}(\phi)
+$$
+
+Define $l$th stage posterior as
+$$
+p_{\text {meld,}l}\left(\phi, \psi_{1}, \ldots, \psi_{\ell} | y_{1}, \ldots, y_{\ell}\right) \propto \prod_{m=1}^{\ell}\left(\frac{p_{m}\left(\phi, \psi_{m}, y_{m}\right)}{p_{m}(\phi)} p_{\mathrm{pool}, m}(\phi)\right)
+$$
+**Basis** obtain samples $\left(\phi^{(h, 1)}, \psi_{1}^{(h, 1)}\right)$ for $h=1, \ldots, H_{1}$ from $p_{\text {meld,}1}\left(\phi, \psi_{1} | y_{1}\right)$ (by MCMC typically)
+
+**Inductive** construct a Metropolis-within-Gibbs sampler for $\left(\phi, \psi_{1}, \ldots, \psi_{\ell}\right)$ given the data $\left(y_{1}, \ldots, y_{\ell}\right)$

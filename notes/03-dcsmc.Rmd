@@ -1,0 +1,3 @@
+# Divide and Conquer with Sequential Monte Carlo
+
+Notes from [@lindsten2017divide].
