@@ -32,7 +32,7 @@
   
   
 <link rel="prev" href="background.html">
-<link rel="next" href="divide-and-conquer-with-sequential-monte-carlo.html">
+<link rel="next" href="divide-and-conquer-with-smc.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -130,7 +130,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="3.4.2" data-path="markov-melding.html"><a href="markov-melding.html#multi-stage-metropolis-within-gibbs"><i class="fa fa-check"></i><b>3.4.2</b> Multi-stage Metropolis-within-Gibbs</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="4" data-path="divide-and-conquer-with-sequential-monte-carlo.html"><a href="divide-and-conquer-with-sequential-monte-carlo.html"><i class="fa fa-check"></i><b>4</b> Divide and Conquer with Sequential Monte Carlo</a></li>
+<li class="chapter" data-level="4" data-path="divide-and-conquer-with-smc.html"><a href="divide-and-conquer-with-smc.html"><i class="fa fa-check"></i><b>4</b> Divide and Conquer with SMC</a></li>
 <li class="chapter" data-level="5" data-path="gambia-malaria-data.html"><a href="gambia-malaria-data.html"><i class="fa fa-check"></i><b>5</b> Gambia Malaria Data</a><ul>
 <li class="chapter" data-level="5.1" data-path="gambia-malaria-data.html"><a href="gambia-malaria-data.html#logistic-regression"><i class="fa fa-check"></i><b>5.1</b> Logistic regression</a></li>
 <li class="chapter" data-level="5.2" data-path="gambia-malaria-data.html"><a href="gambia-malaria-data.html#full-and-submodels"><i class="fa fa-check"></i><b>5.2</b> Full and submodels</a></li>
@@ -212,7 +212,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </div>
 <div id="markov-combination" class="section level2">
 <h2><span class="header-section-number">3.2</span> Markov combination</h2>
-<p><em>To-do: add references to Dawid, Massa</em></p>
+<p>Goudie cites <span class="citation">(Dawid, Lauritzen, and others <a href="#ref-dawid1993hyper">1993</a>)</span> and <span class="citation">(Massa and Lauritzen <a href="#ref-massa2010combining">2010</a>)</span>. <em>To-do: look more into these</em></p>
 <p>Suppose that the marginals are consistent i.e. <span class="math inline">\(p_m(\phi) = p(\phi)\)</span> for all <span class="math inline">\(m\)</span> then one can define the Markov combination <span class="math inline">\(p_\text{comb}\)</span> of submodels <span class="math inline">\(p_1, \ldots, p_m\)</span> as</p>
 <span class="math display">\[\begin{align*}
 p_{\mathrm{comb}}\left(\phi, \psi_1, \ldots, \psi_M, Y_1, \ldots, Y_M\right) &amp;= p(\phi) \prod_{m=1}^{M} p_m\left(\psi_m, Y_m | \phi\right) \\
@@ -269,8 +269,14 @@ p_{\text {meld,}l}\left(\phi, \psi_{1}, \ldots, \psi_{\ell} | y_{1}, \ldots, y_{
 </div>
 <h3> References</h3>
 <div id="refs" class="references">
+<div id="ref-dawid1993hyper">
+<p>Dawid, A Philip, Steffen L Lauritzen, and others. 1993. “Hyper Markov Laws in the Statistical Analysis of Decomposable Graphical Models.” <em>The Annals of Statistics</em> 21 (3). Institute of Mathematical Statistics: 1272–1317.</p>
+</div>
 <div id="ref-goudie2019joining">
 <p>Goudie, Robert JB, Anne M Presanis, David Lunn, Daniela De Angelis, and Lorenz Wernisch. 2019. “Joining and Splitting Models with Markov Melding.” <em>Bayesian Analysis</em> 14 (1). Europe PMC Funders: 81.</p>
+</div>
+<div id="ref-massa2010combining">
+<p>Massa, M Sofia, and Steffen L Lauritzen. 2010. “Combining Statistical Models.” <em>Contemporary Mathematics: Algebraic Methods in Statistics and Probability II</em>, 239–60.</p>
 </div>
 </div>
             </section>
@@ -279,7 +285,7 @@ p_{\text {meld,}l}\left(\phi, \psi_{1}, \ldots, \psi_{\ell} | y_{1}, \ldots, y_{
         </div>
       </div>
 <a href="background.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="divide-and-conquer-with-sequential-monte-carlo.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="divide-and-conquer-with-smc.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
