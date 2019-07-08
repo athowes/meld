@@ -124,7 +124,7 @@ r^T_i &\sim \text{Binomial}\left(p^T_i, n^T_i\right) \\
 * Based on suitable DAG, see Figure 1., the joint distribution is $p(V) = \prod_{v \in V} p(v | \text{pa}(v))$
 * Used Gibbs sampling (BUGS) to perform inference
 
-![*To-do: reproduce this and similar models in Tikz* Solid line is stochastic dependence, dashed line is logical dependence](graphical_model.png)
+![*To-do: reproduce this and similar models in Tikz* Solid line is stochastic dependence, dashed line is logical dependence](files/graphical_model.png)
 
 ### The statistical basis of meta-analysis
 

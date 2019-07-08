@@ -3,7 +3,10 @@ title: "Markov Melding Notes"
 author: "Adam Howes"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
-output: bookdown::gitbook
+output: 
+  bookdown::gitbook: default
+  bookdown::pdf_book:
+    template: null
 documentclass: book
 bibliography: [citations.bib]
 biblio-style: apalike
