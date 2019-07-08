@@ -1,5 +1,7 @@
 # Bayesian logistic regression example
 
+# Set-up ------------------------------------------------------------------
+
 options(scipen = 999)
 pacman::p_load(tidyverse, rjags, geoR)
 
@@ -45,7 +47,7 @@ mh <- function(b, X, mu, sigma, j, scale) {
   if(a > runif(1)) return(y) else return(b)
 }
 
-# Metropolis-within-Gibbs sampler (random scan)
+# Metropolis-within-Gibbs sampler (random scan by default)
 mwg <- function(b0, X, mu, sigma, scale, nsim, random_scan = TRUE) {
   p <- length(b0)
   r <- array(NA, c(nsim, p)) # For the chain
@@ -91,6 +93,10 @@ test$accept # Plan is to adjust scale based on optimal acceptance rate 0.234
 
 # Optimal scalings for each parameter should roughly be some constant multiplied by their standard error
 se <- sqrt(diag((vcov(mle))))
+
+test_se <- mwg(b, X, mu, sigma, scale = se, nsim = 10^4)
+test_se$chain
+test_se$accept
 
 # Objective function to be optimised
 g <- function(s, j) {
@@ -177,19 +183,65 @@ names(model2$chain) <- c("b02", "b2", "b3", "b5") # Correct the naming
 saveRDS(model2, "results/model2.Rds")
 
 colMeans(model1$chains); b1
-
 colMeans(model2$chains); b2 # Still getting close: good!
 
 # Markov combination ------------------------------------------------------
 
 # 4.1. equation (*) can be calculated by logpost(model1) + logpost(model2) - logprior(beta5)
-# This is only used for the link parameter update
+# This is only used for the link parameter update I think
 logtarget <- function(b, X1, X2, mu1, sigma1, mu2, sigma2) {
-  b1 <- b[c(1, 2, 5, 6)]
-  b2 <- b[c(1, 3, 4, 6)]
+  b1 <- b[c(1, 3, 6, 7)]
+  b2 <- b[c(2, 4, 5, 7)]
   as.numeric(logpost(b1, X1, mu1, sigma1) + 
              logpost(b2, X2, mu2, sigma2) - 
-             ((b[6] - mu1[4])^2 / 2*sigma1[4])) # Could use either mu1 or mu2 here
+             ((b[7] - mu1[4])^2 / 2*sigma1[4])) # Could use either mu1 or mu2 here
 }
 
-logtarget(b, X1, X2, mu1, sigma1, mu2, sigma2)
+mh_link
+
+# Start writing outside of a function to begin with
+
+nsim <- 100
+scale <- c(0.1, 0.1, my_guess[2:6])
+b0 <- c(0, 0, b[2:6]) # Initialise intercepts at zero
+
+s1 <- c(1, 3, 6, 7) # Set of indices for parameters in submodel 1
+s2 <- c(2, 4, 5, 7)
+
+order <- c(1, 3, 6, 2, 4, 5, 7) # The order to update the parameters
+# Perhaps this is a convoluted way to do it
+
+b10 <- b0[s1]
+b20 <- b0[s2]
+
+p <- length(b0) # 7 total parameters
+p1 <- length(b10) # 4 total parameters
+p2 <- length(b20) # 4 total parameters
+
+r <- array(NA, c(nsim, p)) # For the chain
+r[1, ] <- b0 # Init chain
+
+# Skip the acceptance diagnostic recording for now
+
+i = 6
+k <- (i %% p) + 1
+j <- order[k]
+if(j %in% c(1, 3, 6)) {
+  r[i, ] <- r[i-1, ]
+  r[i, s1] <- mh(r[i-1, s1], X1, mu1, sigma1, which(s1 == j), scale)
+}
+if(j %in% c(2, 4, 5)) {
+  r[i, ] <- r[i-1, ]
+  r[i, s2] <- mh(r[i-1, s2], X1, mu1, sigma1, which(s2 == j), scale)
+}
+if(j == 7) {
+  y <- r[i-1]
+  y[7] <- y[7] + rnorm(1, mean = 0, sd = scale[7])
+  a <- exp(logtarget(b0, X1, X2, mu1, sigma1, mu2, sigma2) -
+             logtarget(b0, X1, X2, mu1, sigma1, mu2, sigma2)) # Acceptance probability
+  if(a > runif(1)) {
+    r[i, ] <- y
+  }
+}
+p
+order
