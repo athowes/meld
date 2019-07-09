@@ -88,39 +88,34 @@ $$
 
 Define submodels $\mathcal{M}_1$ and $\mathcal{M}_2$ with linear predictors 
 $$
-\eta_1 = \beta_{0,1} + \beta_1 \cdot \texttt{age} +  \beta_4 \cdot \texttt{green} + \beta_5 \cdot \texttt{phc},
+\eta_1 = \beta_{0} + \beta_1 \cdot \texttt{age} +  \beta_4 \cdot \texttt{green} + \beta_5 \cdot \texttt{phc},
 $$
 
 and
 $$
-\eta_2 = \beta_{0,2} + \beta_2 \cdot \texttt{netuse} + \beta_3 \cdot \texttt{treated} + \beta_5 \cdot \texttt{phc}.
+\eta_2 = \beta_{0} + \beta_2 \cdot \texttt{netuse} + \beta_3 \cdot \texttt{treated} + \beta_5 \cdot \texttt{phc}.
 $$
 
 |   | $\text{Intercept}$ | $\beta_1$ | $\beta_2$ | $\beta_3$ | $\beta_4$ | $\beta_5$ |
-|---|:----:|----|----|----|----|----|
+|---|:----:|:--:|:--:|:--:|:--:|:--:|
 | Submodel 1 | $\checkmark$  | $\checkmark$  |   |   | $\checkmark$  | $\checkmark$  |
 | Submodel 2 | $\checkmark$  |   | $\checkmark$  | $\checkmark$  |   | $\checkmark$  |
 
-The link parameter is $\phi = \beta_5$ and model specific parameters are $\psi_1 = (\beta_{0,1}, \beta_1, \beta_4)$ and $\psi_2 = (\beta_{0,2}, \beta_2, \beta_3)$. Both submodels have the same observable random variables $Y_1 = Y_2 = Y$, the response variable `pos`.
+The link parameter is $\phi = (\beta_0, \beta_5)$ and model specific parameters are $\psi_1 = (\beta_1, \beta_4)$ and $\psi_2 = (\beta_2, \beta_3)$. Both submodels have the same observable random variables $Y_1 = Y_2 = Y$, the response variable `pos`.
 
 Define $q_k$ for $k = 1, 2$ by
 $$
 q_k(x) = \frac{\exp \left(\eta_k\right)}{1+ \exp\left(\eta_k\right)}
 $$
 
-Take a normal prior as in Section 1 for $\beta_{1:5}$, and similarly take a normal prior for the intercepts
-$$
-\beta_{0, k} \sim \mathcal{N}(\mu_{0, k}, \sigma_{0, k}^2).
-$$
-
-Then the submodels have consistent prior marginals in the link parameter and Markov combination can be applied.
+Take a normal prior as in Section 1 for $\beta_{0:5}$, then the submodels have consistent prior marginals in the link parameter and Markov combination can be applied.
 
 The joint distribution corresponding to submodel $\mathcal{M}_1$, as a function of the parameters, is proportional to the posterior, which itself is proportional to the prior times the likelihood
 
 \begin{align*}
 p_1(\phi, \psi_1, \mathbf{y}_1) &\propto p_1(\phi, \psi_1 | \mathbf{y}_1) \\
-&= p_1(\beta_{0, 1}, \beta_1, \beta_4, \beta_5 | \mathbf{y}) \\
-&\propto \underbrace{\exp\left(\frac{1}{2\sigma_{0,1}^2}(\beta_{0,1} - \mu_{0,1})^2\right) \prod_{j=1,4,5}\exp\left(\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2\right)}_{\text{Prior on } (\phi, \psi_1) = (\beta_{0,1}, \beta_1, \beta_4, \beta_5)} \times
+&= p_1(\beta_0, \beta_1, \beta_4, \beta_5 | \mathbf{y}) \\
+&\propto \underbrace{\prod_{j=0, 1,4,5}\exp\left(\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2\right)}_{\text{Prior on } (\phi, \psi_1) = (\beta_0, \beta_1, \beta_4, \beta_5)} \times
 \underbrace{\prod_{i=1}^{2035} q_1\left(x_i\right)^{y_i}\left(1-q_1\left(x_i\right)\right)^{1-y_i}}_{\text{Likelihood}}.
 \end{align*}
 
@@ -128,8 +123,8 @@ Similarly for $\mathcal{M}_2$
 
 \begin{align*}
 p_2(\phi, \psi_2, \mathbf{y}_2) &\propto p_2(\phi, \psi_2 | \mathbf{y}_2) \\
-&= p_2(\beta_{0, 2}, \beta_2, \beta_3, \beta_5 | \mathbf{y}) \\
-&\propto \underbrace{\exp\left(\frac{1}{2\sigma_{0,2}^2}(\beta_{0,2} - \mu_{0,2})^2\right) \prod_{j=2,3,5}\exp\left(\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2\right)}_{\text{Prior on } (\phi, \psi_1) = (\beta_{0,2}, \beta_2, \beta_3, \beta_5)} \times 
+&= p_2(\beta_0, \beta_2, \beta_3, \beta_5 | \mathbf{y}) \\
+&\propto \underbrace{\prod_{j=0, 2,3,5}\exp\left(\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2\right)}_{\text{Prior on } (\phi, \psi_1) = (\beta_0, \beta_2, \beta_3, \beta_5)} \times 
 \underbrace{\prod_{i=1}^{2035} q_2\left(x_i\right)^{y_i}\left(1-q_2\left(x_i\right)\right)^{1-y_i}}_{\text{Likelihood}}.
 \end{align*}
 
@@ -137,9 +132,8 @@ Therefore the Markov combination in this case is
 
 \begin{align*}
 p_{\mathrm{comb}}\left(\phi, \psi_1, \psi_2, \mathbf{y}_1, \mathbf{y}_2\right) &= \frac{p_1\left(\phi, \psi_1, \mathbf{y}_1\right)p_2\left(\phi, \psi_2, \mathbf{y}_2\right)}{p(\phi)} \\
-&\propto \frac{p_1(\beta_{0, 1}, \beta_1, \beta_4, \beta_5 | \mathbf{y}) p_2(\beta_{0, 2}, \beta_2, \beta_3, \beta_5 | \mathbf{y})}{p(\beta_5)} \\
-&\propto \prod_{k=1}^2 \exp\left(\frac{1}{2\sigma_{0,k}^2}(\beta_{0,k} - \mu_{0,k})^2\right) \prod_{j=1}^5\exp\left(\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2\right) \\
-&\times \prod_{i=1}^{2035} q_1\left(x_i\right)^{y_i}\left(1-q_1\left(x_i\right)\right)^{1-y_i} q_2\left(x_i\right)^{y_i}\left(1-q_2\left(x_i\right)\right)^{1-y_i} \tag{*}
+&\propto \frac{p_1(\beta_0, \beta_1, \beta_4, \beta_5 | \mathbf{y}) p_2(\beta_0, \beta_2, \beta_3, \beta_5 | \mathbf{y})}{p(\beta_0, \beta_5)} \\
+&\propto \prod_{j=0}^5\exp\left(\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2\right) \times \prod_{i=1}^{2035} q_1\left(x_i\right)^{y_i}\left(1-q_1\left(x_i\right)\right)^{1-y_i} q_2\left(x_i\right)^{y_i}\left(1-q_2\left(x_i\right)\right)^{1-y_i} \tag{*}
 \end{align*}
 
 Informally $p_{\mathrm{comb}}$ contains the product of the priors on the full set of parameters $(\phi, \psi_1, \psi_2)$ with both likelihoods from $\mathcal{M}_1$ and $\mathcal{M}_2$. So this is almost like Bayesian inference for full model but with a different likelihood. It seems as if the information contained by the data $\mathcal{D}$ is being used more than once.
