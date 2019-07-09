@@ -2,7 +2,7 @@
 
 ## Monte Carlo
 
-Notes from Adam Johansen's Warwick course.
+Notes from @johansen2018monte
 
 For the following samplers targeting density $f$ and starting with $x^{(0)} :=\left(x_{1}^{(0)}, \ldots, x_{p}^{(0)}\right)$, iterate for $t = 1, 2, \ldots$
 
@@ -29,7 +29,7 @@ Note that if the proposal $q$ is symmetric (as in random-walk metropolis-hasting
 
 ### Multiple Experts
 
-Notes from Chapter 9 of [@o2006uncertain]
+Notes from Chapter 9 of @o2006uncertain
 
 * Want to obtain a single distribution which encapsulates the beliefs of several experts
 * Two approaches
@@ -56,43 +56,28 @@ Notes from Chapter 9 of [@o2006uncertain]
 * Cooke's method
 * *To-do: for more about opinion pooling, look at Clemen*
 
-## Graphical models
+### Aggregating expert judgement
 
-### Bayesian networks
+Contexts as defined by Simon French on departmental website
 
-Notes from Chapter 7 of [@smith2010bayesian].
+> 
+* The Expert Problem: In this a group of experts are consulted by a decision maker who faces a specific real choice and is not a member of the group. She asks the group for their assessment of the probability of an event or for their uncertainty about some quantity or forecast. She must then assimilate their advice into her probability model and feed this into the decision analysis. She alone is responsible and accountable for the decision. In this context the emphasis is on the decision maker learning from the experts.
+* The Group Decision Problem: Here the group itself is jointly responsible and accountable for the decision; and they are their own experts. They wish that to the outside world their decision appears rational and, possibly, also fair and democratic. Thus they may wish to combine their judgements in some formal structured way. In this context, the emphasis is on supporting rational, democratic deliberations.
+* The Textbook Problem: The group is simply required to give their judgements for others to use in future, as yet undefined circumstances. The emphasis here is on reporting their judgements in a manner that offers the greatest potential for future use.
 
-#### Relevance, informativeness and independence
+Notes on @french2011aggregating, survey of the current state of the art *To-do*
 
-* Client believes that measurement $X$ is irrelevant for predicting $Y$ given the measurement $Z$, written $Y \perp X | Z$ if she believes now that once she learns the value of $Z$ then then measurement of $X$ will provide her with no extra useful information with which to predict the value of $Y$. 
-* In this case, if she is a Bayesian, then she could write her conditional density $p(y | x, z) = p(y | z)$ so that it did not depend on the value of $x$ for all possible values of $(x, y, z)$. Equivalently the joint mass function can be factorised as $p(x, y, z) = p(y | z)p(x | z)p(z)$
-* Two most important and universally applicable rules:
-    + Symmetry $Y \perp X | Z \iff X \perp Y | Z$
-    + Perfect composition $X \perp (Y, Z) | W \iff X \perp Y | (W, Z) \iff X \perp Z | W$
-* *To-do: look at some work of Pearl*
+### The statistical basis of meta-analysis
 
-#### Bayesian networks and DAGs
+@fleiss1993review
 
-* Bayesian network is a simple and convenient way of representing a factorisation of a joint pdf of a vector of random variables $\mathbf{X} = (X_1, X_2, \ldots, X_n)$.
-* Always the case that $p(\mathbf{x}) = p(x_1)p(x_2 | x_1)p(x_3 | x_2, x_1) \times \cdots \times p(x_n | x_1, x_2, \ldots, x_{n-1})$ 
-* Often many of the functions $p(x_i | x_1, x_2, \ldots, x_{i-1})$ are explicit functions of components of $X$ whose indices lie in a proper subset $Q_i \subset \{1, 2, \ldots, i - 1\}$ so that $p(x_i | x_1, x_2, \ldots, x_{i-1}) = p(x_i | \mathbf{x}_{Q_i})$
-* Now $p(\mathbf{x}) = p(x_1)\prod_{i=2}^n p(x_i | \mathbf{x}_{Q_i})$
-* Let the remainder set $R_i = \{1, 2, \ldots, i - 1\} \ Q_i$ then the above bullet point is equivalent to the set of $n-1$ irrelevance statements $X_i \perp \mathbf{X}_{R_i} | \mathbf{X}_{Q_i}, \, 2 \leq i \leq n$
-* Definition: A directed acyclic graph (DAG) $\mathcal{G} = (\mathcal{V}, \mathcal{E})$ with set of vertices $\mathcal{V}$ and set of directed edges $\mathcal{E}$ is a directed graph having no directed cycles
-* Definition: A Bayesian network (BN) on the set of measurements $\{X_1, X_2, \ldots, X_n\}$ is a set of the $n-1$ conditional irrelevance statements together with a DAG $\mathcal{G}$. The set of vertices $\mathcal{G} = \{X_1, X_2, \ldots, X_n\}$ and a directed edge from $X_i$ to $X_j$ is in $\mathcal{E}$ if and only if $i \in Q_j$
-
-### Factor graphs
-
-Notes from [@bishop2006pattern].
-
-* Factor graphs: ``Factor graphs make this decomposition explicit by introducing additional nodes for the factors themselves in addition to the nodes representing the variables.''
-* $p(\mathbf{x}) = \prod_s f_s(\mathbf{x}_s)$ where each factor $f_s$ is a function of the corresponding set of variables $x_s$ 
-
-## Miscellaneous reading
-
+* $C$ denote the total number of studies to be analyzed, $c = 1, \ldots, C$
+    + First approach: take these $C$ studies as the only ones of interest
+    + Second approach: take the $C$ studies as a sample from a larger population of studies (fixed vs random set of studies)
+    
 ### Bayesian approaches to random-effects meta-analysis
 
-Notes from [@smith1995bayesian]
+Notes from @smith1995bayesian
 
 * Meta analysis, also known as systematic overview, is a statistical procedure in which the results of several independent studies are integrated. Aim is to resolve issues that cannot be concluded from a single study alone
 * *Note: [Gelman blog post about why fixed and random effects terminology is confusing]( https://statmodeling.stat.columbia.edu/2005/01/25/why_i_dont_use/)*
@@ -126,17 +111,50 @@ r^T_i &\sim \text{Binomial}\left(p^T_i, n^T_i\right) \\
 
 ![*To-do: reproduce this and similar models in Tikz* Solid line is stochastic dependence, dashed line is logical dependence](files/graphical_model.png)
 
-### The statistical basis of meta-analysis
+## Graphical models
 
-[@fleiss1993review]
+### Bayesian networks
 
-* $C$ denote the total number of studies to be analyzed, $c = 1, \ldots, C$
-    + First approach: take these $C$ studies as the only ones of interest
-    + Second approach: take the $C$ studies as a sample from a larger population of studies (fixed vs random set of studies)
+Notes from Chapter 7 of @smith2010bayesian
+
+#### Relevance, informativeness and independence
+
+* Client believes that measurement $X$ is irrelevant for predicting $Y$ given the measurement $Z$, written $Y \perp X | Z$ if she believes now that once she learns the value of $Z$ then then measurement of $X$ will provide her with no extra useful information with which to predict the value of $Y$. 
+* In this case, if she is a Bayesian, then she could write her conditional density $p(y | x, z) = p(y | z)$ so that it did not depend on the value of $x$ for all possible values of $(x, y, z)$. Equivalently the joint mass function can be factorised as $p(x, y, z) = p(y | z)p(x | z)p(z)$
+* Two most important and universally applicable rules:
+    + Symmetry $Y \perp X | Z \iff X \perp Y | Z$
+    + Perfect composition $X \perp (Y, Z) | W \iff X \perp Y | (W, Z) \iff X \perp Z | W$
+* *To-do: look at some work of Pearl*
+
+#### Bayesian networks and DAGs
+
+* Bayesian network is a simple and convenient way of representing a factorisation of a joint pdf of a vector of random variables $\mathbf{X} = (X_1, X_2, \ldots, X_n)$.
+* Always the case that $p(\mathbf{x}) = p(x_1)p(x_2 | x_1)p(x_3 | x_2, x_1) \times \cdots \times p(x_n | x_1, x_2, \ldots, x_{n-1})$ 
+* Often many of the functions $p(x_i | x_1, x_2, \ldots, x_{i-1})$ are explicit functions of components of $X$ whose indices lie in a proper subset $Q_i \subset \{1, 2, \ldots, i - 1\}$ so that $p(x_i | x_1, x_2, \ldots, x_{i-1}) = p(x_i | \mathbf{x}_{Q_i})$
+* Now $p(\mathbf{x}) = p(x_1)\prod_{i=2}^n p(x_i | \mathbf{x}_{Q_i})$
+* Let the remainder set $R_i = \{1, 2, \ldots, i - 1\} \ Q_i$ then the above bullet point is equivalent to the set of $n-1$ irrelevance statements $X_i \perp \mathbf{X}_{R_i} | \mathbf{X}_{Q_i}, \, 2 \leq i \leq n$
+* Definition: A directed acyclic graph (DAG) $\mathcal{G} = (\mathcal{V}, \mathcal{E})$ with set of vertices $\mathcal{V}$ and set of directed edges $\mathcal{E}$ is a directed graph having no directed cycles
+* Definition: A Bayesian network (BN) on the set of measurements $\{X_1, X_2, \ldots, X_n\}$ is a set of the $n-1$ conditional irrelevance statements together with a DAG $\mathcal{G}$. The set of vertices $\mathcal{G} = \{X_1, X_2, \ldots, X_n\}$ and a directed edge from $X_i$ to $X_j$ is in $\mathcal{E}$ if and only if $i \in Q_j$
+
+### Factor graphs
+
+Notes from Chapter 8 of @bishop2006pattern
+
+* Factor graphs: ``Factor graphs make this decomposition explicit by introducing additional nodes for the factors themselves in addition to the nodes representing the variables.''
+* $p(\mathbf{x}) = \prod_s f_s(\mathbf{x}_s)$ where each factor $f_s$ is a function of the corresponding set of variables $x_s$
+* In a factor graph, there is a node (depicted as usual by a circle) for every variable in the distribution as well as additional nodes (depicted by small squares) for each factor $f_s(\mathbf{x}_s)$ in the joint distribution
+* $p(\mathbf{x}) = f_a(x_1, x_2)f_b(x_1, x_2)f_c(x_2, x_3)f_d(x_3)$. Notice that there are two factors $f_a$ and $f_b$ defined over the same set of variables. If the graph was undirected the product of these factors would be lumped together into the same clique potential
+
+![Example factor graph](files/factor_graph.png)
+
+* Factor graphs are bipartite because they consist of two distinct kinds of nodes, and all links go between nodes of opposite type
+
+
+## Miscellaneous reading
 
 ### Bayesian calibration of computer models
 
-[@kennedy2001bayesian]
+Notes from @kennedy2001bayesian
 
 * Calibration: the activity of adjusting the unknown rate parameters until the outputs of the model fit the observed data
 * Bayesian approach with unknown inputs as parameter vector $\theta$
@@ -156,14 +174,33 @@ r^T_i &\sim \text{Binomial}\left(p^T_i, n^T_i\right) \\
 
 ### Inference for deterministic simulation models: the Bayesian melding approach
 
-[@poole2000inference]
+Notes from @poole2000inference
 
 * Deterministic simulation model: inputs $\to$ outputs
 * Easier to build and interpret than a stochastic model
-* May be very complicated: large number of inputs and outputs, often non-invertible
+* May be very complicated: large number of inputs and outputs, often non-invertible (fixed single set of outputs can be enerated by multiple sets of inputs)
+* $M: \theta \to \phi$ with $\theta \in \Theta \subseteq \mathbb{R}^n$ and $\phi \in \Phi \subseteq \mathbb{R}^p$ such that $\phi = M(\theta)$
+* $p(\theta, \phi)$ is the joint premodel distribution, which summarises all available information about $\theta$ and $\phi$ except that embodied in the model itself
+* Joint distribution of $\theta$ and $\phi$ given the model is the restriction of the premodel distribution to the submanifold $\{(\theta, \phi):\phi = M(\theta)\}$ i.e. $\pi(\theta, \phi) \propto p(\theta, M(\theta))$ if $\phi = M(\theta)$ and zero else.
+* $\pi(\theta, \phi)$ is referred to as the postmodel distribution
+* ... More in this section about Borel paradox
+* Assume that premodel information about inputs is independent of that about outputs then can decompose Bayesian synthesis premodel distribution as $p(\theta, \phi) = p(\theta)p(\phi) \propto q_1(\theta)q_2(\theta)L_1(\theta)L_2(\phi)$ where $q_1(\cdot)$, $q_2(\cdot)$ are the priors and $L_1(\theta) = p(D_\theta|\theta)$, $L_2(\phi) = p(D_\phi|\phi)$ are the likelihoods
+* Likelihoods are invariant to reparametrising, so Borel paradox arises due to priors
+* $\theta$ is a random variable with density $q_1(\theta)$ so $\phi = M(\theta)$ is also a random variable with induced density $q_1^*(\phi)$. If $M^{-1}$ exists then we can write
 
+$$
+q_1^*(\phi) = q_1(M^{-1}(\phi))\det(J(\theta))
+$$
+
+* The issue with Bayesian synthesis [@raftery1995inference], noted by @wolpert1995inference, was that it didn't account for the existence of $q_1^*(\phi)$ which is an issue as there are two potentially different priors on $\phi$
+* Coherising two priors on the same quantity related to the problem of reaching consensus in the presence of multiple expert opinions (for which there is consideratble attention in the statistics literature)
+* Update then pool or pool then update? Should be the same from Bayesain perspective. This is called externally Bayesian by @madansky1964externally
+* @genest1986characterization show that logarithmic pooling is the only externally Bayesian pooling operator
+* Note that in the Markov melding setting, this does not apply to combining likelihoods with distinct data $Y_m$ (!!)
+* How to choose the weights? Somewhat arbitrary
+ 
 ### Combining Models
 
-Chapter 14 of [@bishop2006pattern]
+Chapter 14 of @bishop2006pattern
 
 This chapter is mainly in reference to combining models for prediction (classification and regression) e.g. Bayesian model averaging, committees, boosting. Perhaps there are some connections here which can be made?
