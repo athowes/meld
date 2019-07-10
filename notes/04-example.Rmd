@@ -1,6 +1,11 @@
 # Gambia Malaria Data
 
-The `gambia` dataset from the R package geoR contains observations of $n = 2035$ Gambian children. The eight variables measured are:
+```{r echo=FALSE}
+options(scipen = 999)
+pacman::p_load(tidyverse, geoR, bayesplot)
+```
+
+The `gambia` dataset from the R package `geoR` contains observations of $n = 2035$ Gambian children. The eight measured variables are:
 
 * `x` the x-coordinate of the village (Universal Transverse Mercator - similar to latitude and longitude)
 * `y` the y-coordinate of the village (UTM)
@@ -11,22 +16,33 @@ The `gambia` dataset from the R package geoR contains observations of $n = 2035$
 * `green` satellite-derived measure of the green-ness of vegetation in the immediate vicinity of the village (arbitrary units)
 * `phc` indicator variable denoting the presence (1) or absence (0) of a health center in the village
 
-## Logistic Regression
+The aim is to fit models predicting `pos`, the presence of malaria, using the other variables (exclusing the positions `x` and `y`).
+
+```{r}
+data(gambia)
+X <- as.matrix(gambia[, c(4:8)])
+X <- cbind(intercept = 1, X) # Add intercept column to design matrix
+Y <- gambia[, 3] # Response variable
+n <- length(Y)
+```
+
+## Bayesian Logistic Regression
 
 Consider response $Y \in \{0, 1\}$ modelled as $Y \sim \text{Bern}(q)$ and covariates $x \in \mathbb{R}^p$ with
 
 $$
 \log\left(\frac{q(x)}{1-q(x)}\right) = \beta_0 + \beta^{T} x,
 $$
-where $\beta \in \mathbb{R}^p$. Then
+where $\beta \in \mathbb{R}$ and $\beta \in \mathbb{R}^p$. Then
 
 $$
 q(x) = \frac{\exp \left(\beta_0 + \beta^{T} x\right)}{1+ \exp\left(\beta_0 + \beta^{T} x\right)}
 $$
+
 ```{r}
 # Classify to 1 with probability
 q <- function(x, b) {
-  exp(b %*% x) / (1 + exp(b %*% x)) 
+  exp(b %*% x) / (1 + exp(b %*% x))
 }
 ```
 
@@ -38,8 +54,7 @@ $$
 Place Gaussian priors on $\beta$ and $\beta_0$ such that
 
 $$
-\beta_0 \sim \mathcal{N}(\mu_0, \sigma_0^2), \;
-\beta \sim \mathcal{N}_p(\mu, \text{diag}(\sigma_1^2, \ldots, \sigma_p^2))
+\beta_0 \sim \mathcal{N}(\mu_0, \sigma_0^2), \; \beta \sim \mathcal{N}_p(\mu, \text{diag}(\sigma_1^2, \ldots, \sigma_p^2))
 $$
 Then the posterior is proportional to
 
@@ -59,8 +74,8 @@ The log-likelihood can be rewritten as
 &= \sum_{i=1}^{n} \{ {y_i}\log \left(\frac{q\left(x_i\right)}{1-q\left(x_i\right)}\right) + \log \left(1-q\left(x_i\right)\right) \} \\
 &= \sum_{i=1}^{n} \{ {y_i}\left(\beta_0 + \beta^{T} x\right) - \log \left(1 + \exp(\beta_0 + \beta^{T} x)\right)\},
 \end{align*}
-so that the log-posterior is
 
+so that the log-posterior is
 $$
 \log p(\beta_0, \beta | y_1, \ldots, y_n) \propto \sum_{j=0}^p \frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2 + \sum_{i=1}^{n} \{{y_i}\left(\beta_0 + \beta^{T} x\right) - \log \left(1 + \exp(\beta_0 + \beta^{T} x)\right)\}
 $$
@@ -75,9 +90,9 @@ logpost <- function(b, X, mu, sigma) {
 }
 ```
 
-## Full and Submodels
+## Full Model
 
-Firstly, the full model $\mathcal{M}$ is the logistic regression of response `pos` on the other variables including an intercept term but excluding the co-ordinates `x` and `y`.
+The full model $\mathcal{M}$ is the logistic regression of response `pos` on the other variables including an intercept term but excluding the co-ordinates `x` and `y`.
 $$
 \log\left(\frac{q(x)}{1-q(x)}\right) = \eta
 $$
@@ -86,7 +101,91 @@ $$
 \eta = \beta_0 + \beta_1 \cdot \texttt{age} + \beta_2 \cdot \texttt{netuse} + \beta_3 \cdot \texttt{treated} + \beta_4 \cdot \texttt{green} + \beta_5 \cdot \texttt{phc}
 $$
 
-Define submodels $\mathcal{M}_1$ and $\mathcal{M}_2$ with linear predictors 
+### Maximum-likelihood
+
+Fitting a (frequentist) logisitic regression gives
+
+```{r}
+mle <- glm(Y ~ X - 1, family = "binomial") # Logistic regression using MLE
+b <- mle$coefficients
+summary(mle)
+```
+
+### Bayesian
+
+Set independent normal priors with $\mu_j = 0$ and $\sigma_j = 0.1$ for all $j$, that is
+
+$$
+\beta_j \sim \mathcal{N}(0, 0.1) \; \forall j = 0, \ldots, 5
+$$
+
+Use Metropolis-within-Gibbs \@ref(mwg) to perform inference.
+
+```{r}
+# Function to update jth component of beta via RWMH step
+mh <- function(b, X, mu, sigma, j, scale) {
+  y <- b
+  y[j] <- y[j] + rnorm(1, mean = 0, sd = scale[j])
+  a <- exp(logpost(y, X, mu, sigma) - logpost(b, X, mu, sigma)) # Acceptance probability
+  if(a > runif(1)) return(y) else return(b)
+}
+
+# Metropolis-within-Gibbs sampler (random scan by default)
+mwg <- function(b0, X, mu, sigma, scale, nsim, random_scan = TRUE) {
+  p <- length(b0)
+  r <- array(NA, c(nsim, p)) # For the chain
+  r[1, ] <- b0 # Init chain
+  s <- array(0, c(3, p)) # For acceptance rates
+  for(i in 2:nsim) {
+    if(random_scan) {
+      j <- sample(1:p, 1) # Random scan
+    } else {
+      j <- (i %% p) + 1 # Systematic scan
+    }
+    s[1, j] <- s[1, j] + 1 # Update pick count
+    r[i, ] <- mh(r[i-1, ], X, mu, sigma, j, scale)
+    if(!identical(r[i, ], r[i-1, ])) s[2, j] <- s[2, j] + 1 # Update accept count
+  }
+  r <- as.data.frame(r)
+  names(r) <- sprintf("b%d", 0:(p-1))
+  s[3, ] <- s[2, ] / s[1, ] # Acceptance rates
+  return(list("chain" = r, "accept" = s))
+}
+```
+
+Use `my_guess` for scaling (found by manual adjustment)
+
+```{r}
+my_guess <- c(0.175, 0.00025, 0.2, 0.3, 0.005, 0.2)
+```
+
+Run
+
+```{r eval = FALSE}
+full <- mwg(rep(0, 6), X, mu, sigma, scale = my_guess, nsim = 10^5)
+```
+
+```{r echo = FALSE}
+full <- readRDS(file = "../output/full_model.Rds")
+```
+
+```{r warning=FALSE, message=FALSE}
+# Want to do pairs plots but having trouble rendering
+mcmc_trace(full$chain) # Traceplots
+mcmc_hist(full$chain) # Histograms
+full$accept
+colMeans(full$chain); b # Pretty close to the ML estimates, so the code is probably correct
+```
+
+## Submodels
+
+|   | $\text{Intercept}$ | $\beta_1$ | $\beta_2$ | $\beta_3$ | $\beta_4$ | $\beta_5$ |
+|---|:----:|:--:|:--:|:--:|:--:|:--:|
+| Submodel 1 | $\checkmark$  | $\checkmark$  |   |   | $\checkmark$  | $\checkmark$  |
+| Submodel 2 | $\checkmark$  |   | $\checkmark$  | $\checkmark$  |   | $\checkmark$  |
+
+
+The submodels $\mathcal{M}_1$ and $\mathcal{M}_2$ are defined by linear predictors 
 $$
 \eta_1 = \beta_{0} + \beta_1 \cdot \texttt{age} +  \beta_4 \cdot \texttt{green} + \beta_5 \cdot \texttt{phc},
 $$
@@ -96,19 +195,80 @@ $$
 \eta_2 = \beta_{0} + \beta_2 \cdot \texttt{netuse} + \beta_3 \cdot \texttt{treated} + \beta_5 \cdot \texttt{phc}.
 $$
 
-|   | $\text{Intercept}$ | $\beta_1$ | $\beta_2$ | $\beta_3$ | $\beta_4$ | $\beta_5$ |
-|---|:----:|:--:|:--:|:--:|:--:|:--:|
-| Submodel 1 | $\checkmark$  | $\checkmark$  |   |   | $\checkmark$  | $\checkmark$  |
-| Submodel 2 | $\checkmark$  |   | $\checkmark$  | $\checkmark$  |   | $\checkmark$  |
-
-The link parameter is $\phi = (\beta_0, \beta_5)$ and model specific parameters are $\psi_1 = (\beta_1, \beta_4)$ and $\psi_2 = (\beta_2, \beta_3)$. Both submodels have the same observable random variables $Y_1 = Y_2 = Y$, the response variable `pos`.
+The link parameter is $\phi = (\beta_0, \beta_5)$ and model specific parameters are $\psi_1 = (\beta_1, \beta_4)$ and $\psi_2 = (\beta_2, \beta_3)$. Both submodels have the same observable random variables $Y_1 = Y_2$ the response variable `pos`.
 
 Define $q_k$ for $k = 1, 2$ by
 $$
 q_k(x) = \frac{\exp \left(\eta_k\right)}{1+ \exp\left(\eta_k\right)}
 $$
 
-Take a normal prior as in Section 1 for $\beta_{0:5}$, then the submodels have consistent prior marginals in the link parameter and Markov combination can be applied.
+First we will run the submodels seperately.
+
+### Maximum-likelihood
+
+```{r}
+X1 <- X[, c(1, 2, 5, 6)] # Design matrix 1: intercept, age, green and phc
+p1 <- 4
+
+X2 <- X[, c(1, 3, 4, 6)] # Design matrix 2: intercept, netuse, treated and phc
+p2 <- 4
+
+# GLM for model 1
+mle1 <- glm(Y ~ X1 - 1, family = "binomial")
+summary(mle1)
+
+b1 <- mle1$coefficients
+
+# GLM for model 2
+mle2 <- glm(Y ~ X2 - 1, family = "binomial")
+summary(mle2)
+
+b2 <- mle2$coefficients
+```
+
+### Bayesian
+
+Take the same normal prior as before for $\beta_{0:5}$.
+
+```{r}
+# Priors same as in the joint modelling to start with (so consistent in the link parameter)
+mu1 <- rep(0, p1)
+sigma1 <- rep(0.1, p1)
+
+mu2 <- rep(0, p2)
+sigma2 <- rep(0.1, p2)
+```
+
+```{r eval=FALSE}
+model1 <- mwg(b0 = rep(0, 4), X = X1, mu = mu1, sigma = sigma1,
+               scale = my_guess[c(1, 2, 5, 6)], nsim = 10^5)
+names(model1$chain) <- c("b01", "b1", "b4", "b5") # Correct the naming
+
+model2 <- mwg(b0 = rep(0, 4), X = X2, mu = mu2, sigma = sigma2,
+               scale = my_guess[c(1, 3, 4, 6)], nsim = 10^5)
+names(model2$chain) <- c("b02", "b2", "b3", "b5") # Correct the naming
+```
+
+```{r echo=FALSE}
+model1 <- readRDS(file = "../output/model1.Rds")
+model2 <- readRDS(file = "../output/model2.Rds")
+```
+
+```{r warning=FALSE, message=FALSE}
+mcmc_trace(model1$chain) # Traceplots
+mcmc_hist(model1$chain) # Histograms
+model1$accept
+colMeans(model1$chain); b1
+
+mcmc_trace(model2$chain) # Traceplots
+mcmc_hist(model2$chain) # Histograms
+model2$accept
+colMeans(model2$chain); b2
+```
+
+### Markov Combination
+
+The submodels have consistent prior marginals in the link parameter and Markov combination can be applied.
 
 The joint distribution corresponding to submodel $\mathcal{M}_1$, as a function of the parameters, is proportional to the posterior, which itself is proportional to the prior times the likelihood
 
@@ -120,7 +280,6 @@ p_1(\phi, \psi_1, \mathbf{y}_1) &\propto p_1(\phi, \psi_1 | \mathbf{y}_1) \\
 \end{align*}
 
 Similarly for $\mathcal{M}_2$
-
 \begin{align*}
 p_2(\phi, \psi_2, \mathbf{y}_2) &\propto p_2(\phi, \psi_2 | \mathbf{y}_2) \\
 &= p_2(\beta_0, \beta_2, \beta_3, \beta_5 | \mathbf{y}) \\
@@ -129,7 +288,6 @@ p_2(\phi, \psi_2, \mathbf{y}_2) &\propto p_2(\phi, \psi_2 | \mathbf{y}_2) \\
 \end{align*}
 
 Therefore the Markov combination in this case is
-
 \begin{align*}
 p_{\mathrm{comb}}\left(\phi, \psi_1, \psi_2, \mathbf{y}_1, \mathbf{y}_2\right) &= \frac{p_1\left(\phi, \psi_1, \mathbf{y}_1\right)p_2\left(\phi, \psi_2, \mathbf{y}_2\right)}{p(\phi)} \\
 &\propto \frac{p_1(\beta_0, \beta_1, \beta_4, \beta_5 | \mathbf{y}) p_2(\beta_0, \beta_2, \beta_3, \beta_5 | \mathbf{y})}{p(\beta_0, \beta_5)} \\
@@ -139,14 +297,12 @@ p_{\mathrm{comb}}\left(\phi, \psi_1, \psi_2, \mathbf{y}_1, \mathbf{y}_2\right) &
 
 Informally $p_{\mathrm{comb}}$ contains the product of the priors on the full set of parameters $(\phi, \psi_1, \psi_2)$ with both likelihoods from $\mathcal{M}_1$ and $\mathcal{M}_2$. So this is almost like Bayesian inference for full model but with a different likelihood. It seems as if the information contained by the data $\mathcal{D}$ is being used more than once.
 
-## Monte Carlo
+Want to sample from the target (*) using the methods described in @goudie2019joining
 
-Want to sample from the target (*) using the methods described in [@goudie2019joining]. Continue to use (symmetric) normal proposals throughout.
-
-### Metropolis-within-Gibbs
+#### Metropolis-within-Gibbs
 
 * Update first latent parameter $\psi_1$ by systematic scan Metropolis-within-Gibbs
 * Update second latent parameter $\psi_2$ by systematic scan Metropolis-within-Gibbs
 * Update link parameter $\phi$ by Metropolis-within-Gibbs
 
-### Multi-stage Metropolis-within-Gibbs
+#### Multi-stage Metropolis-within-Gibbs

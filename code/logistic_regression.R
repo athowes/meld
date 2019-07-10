@@ -3,32 +3,31 @@
 # Set-up ------------------------------------------------------------------
 
 options(scipen = 999)
-pacman::p_load(tidyverse, rjags, geoR)
+pacman::p_load(tidyverse, rjags, geoR, bayesplot)
 
 data(gambia)
 X <- as.matrix(gambia[, c(4:8)])
+X <- cbind(intercept = 1, X) # Add intercept column to design matrix
 Y <- gambia[, 3] # Response variable
 n <- length(Y)
 
-mle <- glm(Y ~ X, family = "binomial") # Logistic regression using MLE
+mle <- glm(Y ~ X - 1, family = "binomial") # Logistic regression using MLE
 summary(mle)
 
 b <- mle$coefficients
-
-X <- cbind(intercept = 1, X) # Add intercept column to design matrix
 
 # Full model --------------------------------------------------------------
 
 # The plan is to use Metropolis-within-Gibbs to sample from the posterior
 
-# Set up the prior on beta (extended to include beta zero) as above
+# Set up the prior on beta (extended to include beta zero)
 p <- 6
 mu <- rep(0, p)
 sigma <- rep(0.1, p)
 
 # Classify to 1 with probability
 q <- function(x, b) {
-  exp(b %*% x) / (1 + exp(b %*% x)) 
+  exp(b %*% x) / (1 + exp(b %*% x))
 }
 
 # (proportional to) log posterior in the indep normals prior case
@@ -54,7 +53,7 @@ mwg <- function(b0, X, mu, sigma, scale, nsim, random_scan = TRUE) {
   r[1, ] <- b0 # Init chain
   s <- array(0, c(3, p)) # For acceptance rates
   for(i in 2:nsim) {
-    if(random_scan) { 
+    if(random_scan) {
       j <- sample(1:p, 1) # Random scan
     } else {
       j <- (i %% p) + 1 # Systematic scan
@@ -77,18 +76,8 @@ accept_rate <- function(b, chains) {
 
 # Scaling and running -----------------------------------------------------
 
-trace_plots <- function(x, nsim) { # Helper function
-  plot1 <- qplot(x = 1:nsim, y = x$chain$b1, geom = "line")
-  plot2 <- qplot(x = 1:nsim, y = x$chain$b2, geom = "line")
-  plot3 <- qplot(x = 1:nsim, y = x$chain$b3, geom = "line")
-  plot4 <- qplot(x = 1:nsim, y = x$chain$b4, geom = "line")
-  plot5 <- qplot(x = 1:nsim, y = x$chain$b5, geom = "line")
-  plot6 <- qplot(x = 1:nsim, y = x$chain$b6, geom = "line")
-  cowplot::plot_grid(plot1, plot2, plot3, plot4, plot5, plot6, ncol = 3)
-}
-
 test <- mwg(b, X, mu, sigma, scale = rep(0.1, 6), nsim = 10^4) # Initialising at roughly the right values
-trace_plots(test, 10^4)
+mcmc_trace(test$chain)
 test$accept # Plan is to adjust scale based on optimal acceptance rate 0.234
 
 # Optimal scalings for each parameter should roughly be some constant multiplied by their standard error
@@ -114,7 +103,7 @@ find_scale <- function(j) {
 }
 
 opt_scale1 <- find_scale(1) # And so on..
-opt_scale2 <- find_scale(2) 
+opt_scale2 <- find_scale(2)
 opt_scale3 <- find_scale(3)
 
 # This seems not to be working well
@@ -122,12 +111,12 @@ opt_scale3 <- find_scale(3)
 my_guess <- c(0.175, 0.00025, 0.2, 0.3, 0.005, 0.2)
 
 test2 <- mwg(b, X, mu, sigma, scale = my_guess, nsim = 10^4)
-trace_plots(test2, 10^4)
+mcmc_trace(test2$chain)
 test2$accept
 
 # Larger sample size and starting at zero
 full <- mwg(rep(0, 6), X, mu, sigma, scale = my_guess, nsim = 10^5)
-trace_plots(full, 10^5) # 1, 2, 5 could still be improved but looking better
+mcmc_trace(full$chain) # 1, 2, 5 could still be improved but looking better
 full$accept
 
 saveRDS(full, "results/full_model.Rds")
@@ -149,7 +138,7 @@ head(X) # Reminder about the variables we have
 X1 <- X[, c(1, 2, 5, 6)] # Design matrix 1: intercept, age, green and phc
 p1 <- 4
 
-X2 <- X[, c(1, 3, 4, 6)] # Design matrix 2: intercept netuse, treated and phc
+X2 <- X[, c(1, 3, 4, 6)] # Design matrix 2: intercept, netuse, treated and phc
 p2 <- 4
 
 # GLM for model 1
@@ -184,64 +173,3 @@ saveRDS(model2, "results/model2.Rds")
 
 colMeans(model1$chains); b1
 colMeans(model2$chains); b2 # Still getting close: good!
-
-# Markov combination ------------------------------------------------------
-
-# 4.1. equation (*) can be calculated by logpost(model1) + logpost(model2) - logprior(beta5)
-# This is only used for the link parameter update I think
-logtarget <- function(b, X1, X2, mu1, sigma1, mu2, sigma2) {
-  b1 <- b[c(1, 3, 6, 7)]
-  b2 <- b[c(2, 4, 5, 7)]
-  as.numeric(logpost(b1, X1, mu1, sigma1) + 
-             logpost(b2, X2, mu2, sigma2) - 
-             ((b[7] - mu1[4])^2 / 2*sigma1[4])) # Could use either mu1 or mu2 here
-}
-
-mh_link
-
-# Start writing outside of a function to begin with
-
-nsim <- 100
-scale <- c(0.1, 0.1, my_guess[2:6])
-b0 <- c(0, 0, b[2:6]) # Initialise intercepts at zero
-
-s1 <- c(1, 3, 6, 7) # Set of indices for parameters in submodel 1
-s2 <- c(2, 4, 5, 7)
-
-order <- c(1, 3, 6, 2, 4, 5, 7) # The order to update the parameters
-# Perhaps this is a convoluted way to do it
-
-b10 <- b0[s1]
-b20 <- b0[s2]
-
-p <- length(b0) # 7 total parameters
-p1 <- length(b10) # 4 total parameters
-p2 <- length(b20) # 4 total parameters
-
-r <- array(NA, c(nsim, p)) # For the chain
-r[1, ] <- b0 # Init chain
-
-# Skip the acceptance diagnostic recording for now
-
-i = 6
-k <- (i %% p) + 1
-j <- order[k]
-if(j %in% c(1, 3, 6)) {
-  r[i, ] <- r[i-1, ]
-  r[i, s1] <- mh(r[i-1, s1], X1, mu1, sigma1, which(s1 == j), scale)
-}
-if(j %in% c(2, 4, 5)) {
-  r[i, ] <- r[i-1, ]
-  r[i, s2] <- mh(r[i-1, s2], X1, mu1, sigma1, which(s2 == j), scale)
-}
-if(j == 7) {
-  y <- r[i-1]
-  y[7] <- y[7] + rnorm(1, mean = 0, sd = scale[7])
-  a <- exp(logtarget(b0, X1, X2, mu1, sigma1, mu2, sigma2) -
-             logtarget(b0, X1, X2, mu1, sigma1, mu2, sigma2)) # Acceptance probability
-  if(a > runif(1)) {
-    r[i, ] <- y
-  }
-}
-p
-order
