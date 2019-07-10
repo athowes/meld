@@ -11,6 +11,8 @@ documentclass: book
 bibliography: [citations.bib]
 biblio-style: apalike
 link-citations: yes
+delete_merged_file: true
+geometry: "left=4cm, right=3cm, top=2.5cm, bottom=2.5cm"
 ---
 
 # Notation
