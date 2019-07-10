@@ -1,8 +1,8 @@
 # Markov Melding
 
-Notes from [@goudie2019joining].
+Notes from @goudie2019joining
 
-## Introduction to Markov melding
+## Introduction to Markov Melding
 
 * Motivation: by using all available data typically get:
     + More precise estimates
@@ -32,9 +32,9 @@ Notes from [@goudie2019joining].
     + $Y_m$ are model specific observed quantities
 * Join together to create $p(\phi, \psi_1, \ldots, \psi_M, Y_1, \ldots, Y_M)$
 
-## Markov combination
+## Markov Combination
 
-Goudie cites [@dawid1993hyper] and [@massa2010combining]. *To-do: look more into these*
+Goudie cites @dawid1993hyper and @massa2010combining. *To-do: look more into these*
 
 Suppose that the marginals are consistent i.e. $p_m(\phi) = p(\phi)$ for all $m$ then one can define the Markov combination $p_\text{comb}$ of submodels $p_1, \ldots, p_m$ as
 
@@ -44,7 +44,7 @@ p_{\mathrm{comb}}\left(\phi, \psi_1, \ldots, \psi_M, Y_1, \ldots, Y_M\right) &= 
 &= \frac{\prod_{m=1}^{M} p_m\left(\phi, \psi_m, Y_m\right)}{p(\phi)^{M-1}}
 \end{align*}
 
-## Pooling marginal distributions
+## Pooling Marginal Distributions
 
 If the marginals are inconsistent then instead a pooled density $p_\text{pool}(\phi) = g(p_1(\phi), \ldots, p_M(\phi))$ can be used instead. Similar idea to combining expert opinions. This suggests the joint model
 \begin{align*}
@@ -54,7 +54,7 @@ p_{\text{meld}}\left(\phi, \psi_{1}, \ldots, \psi_{M}, Y_{1}, \ldots, Y_{M}\righ
 
 Goudie calls this Markov melding.
 
-## Inference and computation
+## Inference and Computation
 
 Joint posterior, given data $Y_m = y_m$ for $m = 1, \ldots, M$, under Melded model is 
 $$

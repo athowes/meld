@@ -11,7 +11,7 @@ The `gambia` dataset from the R package geoR contains observations of $n = 2035$
 * `green` satellite-derived measure of the green-ness of vegetation in the immediate vicinity of the village (arbitrary units)
 * `phc` indicator variable denoting the presence (1) or absence (0) of a health center in the village
 
-## Logistic regression
+## Logistic Regression
 
 Consider response $Y \in \{0, 1\}$ modelled as $Y \sim \text{Bern}(q)$ and covariates $x \in \mathbb{R}^p$ with
 
@@ -75,7 +75,7 @@ logpost <- function(b, X, mu, sigma) {
 }
 ```
 
-## Full and submodels
+## Full and Submodels
 
 Firstly, the full model $\mathcal{M}$ is the logistic regression of response `pos` on the other variables including an intercept term but excluding the co-ordinates `x` and `y`.
 $$
@@ -133,12 +133,13 @@ Therefore the Markov combination in this case is
 \begin{align*}
 p_{\mathrm{comb}}\left(\phi, \psi_1, \psi_2, \mathbf{y}_1, \mathbf{y}_2\right) &= \frac{p_1\left(\phi, \psi_1, \mathbf{y}_1\right)p_2\left(\phi, \psi_2, \mathbf{y}_2\right)}{p(\phi)} \\
 &\propto \frac{p_1(\beta_0, \beta_1, \beta_4, \beta_5 | \mathbf{y}) p_2(\beta_0, \beta_2, \beta_3, \beta_5 | \mathbf{y})}{p(\beta_0, \beta_5)} \\
-&\propto \prod_{j=0}^5\exp\left(\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2\right) \times \prod_{i=1}^{2035} q_1\left(x_i\right)^{y_i}\left(1-q_1\left(x_i\right)\right)^{1-y_i} q_2\left(x_i\right)^{y_i}\left(1-q_2\left(x_i\right)\right)^{1-y_i} \tag{*}
+&\propto \prod_{j=0}^5\exp\left(\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2\right) \\
+&\times \prod_{i=1}^{2035} q_1\left(x_i\right)^{y_i}\left(1-q_1\left(x_i\right)\right)^{1-y_i} q_2\left(x_i\right)^{y_i}\left(1-q_2\left(x_i\right)\right)^{1-y_i} \tag{*}
 \end{align*}
 
 Informally $p_{\mathrm{comb}}$ contains the product of the priors on the full set of parameters $(\phi, \psi_1, \psi_2)$ with both likelihoods from $\mathcal{M}_1$ and $\mathcal{M}_2$. So this is almost like Bayesian inference for full model but with a different likelihood. It seems as if the information contained by the data $\mathcal{D}$ is being used more than once.
 
-## Monte Carlo schemes
+## Monte Carlo
 
 Want to sample from the target (*) using the methods described in [@goudie2019joining]. Continue to use (symmetric) normal proposals throughout.
 
