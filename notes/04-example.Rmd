@@ -113,10 +113,10 @@ summary(mle)
 
 ### Bayesian
 
-Set independent normal priors with $\mu_j = 0$ and $\sigma_j = 0.1$ for all $j$, that is
+Set independent normal priors with $\mu_0 = 0$, $\mu = 0$ and $\sigma_j = 0.1$ for all $j$, that is
 
 $$
-\beta_j \sim \mathcal{N}(0, 0.1) \; \forall j = 0, \ldots, 5
+\beta_j \sim \mathcal{N}(0, 0.1), \; \forall j = 0, \ldots, 5
 $$
 
 Use Metropolis-within-Gibbs \@ref(mwg) to perform inference.
@@ -297,11 +297,10 @@ p_{\mathrm{comb}}\left(\phi, \psi_1, \psi_2, \mathbf{y}_1, \mathbf{y}_2\right) &
 
 Informally $p_{\mathrm{comb}}$ contains the product of the priors on the full set of parameters $(\phi, \psi_1, \psi_2)$ with both likelihoods from $\mathcal{M}_1$ and $\mathcal{M}_2$. So this is almost like Bayesian inference for full model but with a different likelihood. It seems as if the information contained by the data $\mathcal{D}$ is being used more than once.
 
-Want to sample from \@ref(eq:target) using the methods described in @goudie2019joining. As before, it is convenient to work in terms of a logarithmic version
+Want to sample from \@ref(eq:target) using the methods described in @goudie2019joining. As before, it is convenient to work in terms of a logarithmic version $\log p_{\mathrm{comb}}\left(\phi, \psi_1, \psi_2, \mathbf{y}_1, \mathbf{y}_2\right)$ which is equal to
 
 $$
-\log p_{\mathrm{comb}}\left(\phi, \psi_1, \psi_2, \mathbf{y}_1, \mathbf{y}_2\right) = 
-\sum_{j=0}^5\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2 + \prod_{i=1}^{2035} q_1\left(x_i\right)^{y_i}\left(1-q_1\left(x_i\right)\right)^{1-y_i} q_2\left(x_i\right)^{y_i}\left(1-q_2\left(x_i\right)\right)^{1-y_i}
+\sum_{j=0}^5\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2 + \sum_{i=1}^{2035} \{ {y_i}(\log q_1\left(x_i\right) + \log q_2\left(x_i\right))  + (1 - y_i) (\log \left(1-q_1\left(x_i\right)\right) + \log \left(1-q_2\left(x_i\right)\right)\}.
 $$
 
 #### Metropolis-within-Gibbs
