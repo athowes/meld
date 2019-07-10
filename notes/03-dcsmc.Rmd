@@ -1,3 +1,63 @@
 # Divide and Conquer with SMC
 
-Notes from [@lindsten2017divide].
+In the end want to understand @lindsten2017divide
+
+## Tutorial on Particle Filtering and Smoothing
+
+Notes from @doucet2009tutorial
+
+* HMM with hidden states $\{X_n\}_{n\geq1}$ and observations $\{Y_n\}_{n\geq1}$ defined by
+    + $X_1 \sim \mu\left(x_1\right), \; X_n | \left(X_{n-1}=x_{n-1}\right) \sim f\left(x_n | x_{n-1}\right)$
+    + $Y_n | \left(X_n = x_n\right) \sim g\left(y_n | x_n\right)$
+* Could see this from a Bayesian perspective as a prior $p(x_{1:n})$ and a likelihood function $p(y_{1:n} | x_{1:n})$ with posterior $p(x_{1:n} | y_{1:n}) = \frac{p(x_{1:n}, y_{1:n})}{p(y_{1:n})}$
+* Tractable in the discrete setting or for the linear Gaussian model, more generally use particle methods (a subset of Sequential Monte Carlo methods)
+* More generally, SMC methods sample sequentially from a sequence of target probability densities $\{\pi_n(x_{1:n})\}$ of increasing dimension where each distribution $\pi_n(x_{1:n})$ is defined on the product space $\mathcal{X}^n$
+* Writing $\pi_n\left(x_{1:n}\right) = \frac{\gamma_n\left(x_{1:n}\right)}{Z_n}$ it is only required that $\gamma_n:\mathcal{X}^n \to \mathbb{R}^+$ is known pointwise - the normalising constant $Z_n$ might be unknown
+* SMC provides an approximation of $pi_n(x_{1:n})$ and an estimate of $Z_n$ at time $n$
+* Monte Carlo basics: approximate by the empircal measure $\widehat{\pi}_n \left(x_{1:n}\right) = \frac{1}{N} \sum_{i=1}^{N} \delta_{X_{1:n}^i}\left(x_{1:n}\right)$
+    + Problem 1: can't sample from $\pi_n(x_{1:n})$
+    + Problem 2: even if we could sample exactly from $\pi_n(x_{1:n})$ it's probably at least $O(n)$
+* Importance Sampling: use an importance densisty $q_n(x_{1:n})$ and reweight samples by $w_n(x_{1:n}) = \frac{\gamma_n\left(x_{1:n}\right)}{q_n\left(x_{1:n}\right)}$
+
+### Sequential Importance Sampling
+
+Select an importance distribution with the structure 
+$$q_n\left(x_{1:n}\right)=q_{n-1}\left(x_{1:n-1}\right) q_n\left(x_n | x_{1:n-1}\right) = q_1(x_1) \prod_{k=2}^n q_k(x_k | x_{1:k-1})$$
+
+In practice, this means sampling each $X_k$ from a distribution given $X_{1:k-1}$. The unnormalised weights are then
+$$
+\begin{align}
+w_n\left(x_{1:n}\right) 
+&= \frac{\gamma_n\left(x_{1:n}\right)}{q_n\left(x_{1:n}\right)} \\ 
+&=\frac{\gamma_{n-1}\left(x_{1:n-1}\right)}{q_{n-1}\left(x_{1:n-1}\right)} \frac{\gamma_n\left(x_{1:n}\right)}{\gamma_{n-1}\left(x_{1:n-1}\right) q_n\left(x_n | x_{1:n-1}\right)} \\
+&= w_{n-1}\left(x_{1:n-1}\right) \alpha_n(x_{1:n}) \\
+&= \cdots = w_1(x_1) \prod_{k=2}^n \alpha_k(x_{1:k})
+\end{align}
+$$
+where the incremental importance weight function $\alpha_n(x_{1:n})$ is given by
+$$
+\alpha_n(x_{1:n}) = \frac{\gamma_n\left(x_{1:n}\right)}{\gamma_{n-1}\left(x_{1:n-1}\right) q_n\left(x_n | x_{1:n-1}\right)}
+$$
+
+The SIS algorithm is as follows, with each step carried out for $i = 1, \ldots, N$:
+
+At time $n = 1$
+
+1. Sample $X_1^i \sim q_1\left(x_1\right)$
+2. Compute the weights $w_1(X_1^i)$ and $W_1^i \propto w_1(X_1^i)$ (normalised weight)
+
+At time $n \geq 2$
+
+1. Sample $X_n^i \sim q_n\left(x_n | X_{1:n-1}^i\right)$
+2. Compute the weights $w_n(X_{1:n}^i) = w_{n-1}\left(X_{1:n-1}^i\right) \alpha_n\left(X_{1:n}^{i}\right)$ and $W_n^i \propto w_n(X_{1:n}^i)$
+
+***
+
+* How to choose $q_n(x_n | x_{1:n-1})$? To minimise variance of $w_n(x_{1:n})$ choose $q_n^{\mathrm{opt}}\left(x_n | x_{1:n-1}\right)=\pi_n\left(x_n | x_{1 : n-1}\right)$
+
+## Seqential Monte Carlo Sampling Methods for Bayesian Filtering
+
+Notes from @doucet2000sequential
+
+
+
