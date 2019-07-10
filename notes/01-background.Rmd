@@ -4,6 +4,11 @@
 
 Notes from @johansen2018monte
 
+* Monte Carlo methods "represent the solution of a problem as a parameter of a hypothetical population, and using a random sequence of numbers to construct a sample of the population, from which statistical estimates of the parameter can be obtained"
+* Mainly want to approximate a generic probability density $\pi(x)$
+* If it is possible to sample $X_i \sim \pi(x)$ for $i = 1,\ldots, N$ then Monte Carlo approximates $\pi(x)$ by the empirical measure $\widehat{\pi}(x) = \frac{1}{N} \sum_{i=1}^{N} \delta_{X_i}(x)$
+* Can approximate the expectation of any test function $\varphi: \mathcal{X} \to \mathbb{R}$ given by $\mathbb{E}_\pi \varphi(x) := \int \varphi(x) \pi(x) dx$ as $\int \varphi(x) \widehat{\pi}(x) dx = \frac{1}{N} \sum_{i=1}^{N} \varphi(X_i)$
+
 For the following samplers targeting density $f$ and starting with $x^{(0)} :=\left(x_{1}^{(0)}, \ldots, x_{p}^{(0)}\right)$, iterate for $t = 1, 2, \ldots$
 
 ### Metropolis-Hastings Sampler
@@ -18,13 +23,13 @@ Note that if the proposal $q$ is symmetric (as in random-walk metropolis-hasting
 1. Draw $j \sim \text{Unif}\{1, \ldots, p\}$
 2. Draw $x_{j}^{(t)} \sim f_{x_{j} | x_{-j}}\left(\cdot | x_{1}^{(t-1)}, \ldots, x_{j-1}^{(t-1)}, x_{j+1}^{(t-1)}, \ldots, x_{p}^{(t-1)}\right)$, and set $x_i^{(t)} :=x_i^{(t-1)}$ for all $i \neq j$
 
-### (Random scan) Metropolis-within-Gibbs
+### (Random scan) Metropolis-within-Gibbs {#mwg}
 
 1. Draw $j \sim \text{Unif}\{1, \ldots, p\}$
 2. Draw $x_{j} \sim q_j\left(\cdot | x^{(t-1)}\right)$ and set $x = \left(x_{1}^{(t-1)}, \ldots, x_j, \ldots,  x_{p}^{(t-1)}\right)$
 3. With probability $\min \left\{1, \frac{f(x) \cdot q\left(x^{(t-1)} | x\right)}{f\left(x^{(t-1)}\right) \cdot q\left(x | x^{(t-1)}\right)}\right\}$ set $x^{(t)}=x$, else set $x^{(t)}=x^{(t-1)}$
 
-## Meta-analysis, Evidence Synthesis, Combining Expert Opinion etc.
+## Combining Expert Opinion
 
 ### Multiple Experts
 
@@ -70,6 +75,8 @@ Notes from @clemen1999combining
 * The Expert Problem: In this a group of experts are consulted by a decision maker who faces a specific real choice and is not a member of the group. She asks the group for their assessment of the probability of an event or for their uncertainty about some quantity or forecast. She must then assimilate their advice into her probability model and feed this into the decision analysis. She alone is responsible and accountable for the decision. In this context the emphasis is on the decision maker learning from the experts.
 * The Group Decision Problem: Here the group itself is jointly responsible and accountable for the decision; and they are their own experts. They wish that to the outside world their decision appears rational and, possibly, also fair and democratic. Thus they may wish to combine their judgements in some formal structured way. In this context, the emphasis is on supporting rational, democratic deliberations.
 * The Textbook Problem: The group is simply required to give their judgements for others to use in future, as yet undefined circumstances. The emphasis here is on reporting their judgements in a manner that offers the greatest potential for future use.
+
+## Meta-analysis
 
 ### The Statistical Basis of Meta-Analysis
 

@@ -25,15 +25,14 @@ Select an importance distribution with the structure
 $$q_n\left(x_{1:n}\right)=q_{n-1}\left(x_{1:n-1}\right) q_n\left(x_n | x_{1:n-1}\right) = q_1(x_1) \prod_{k=2}^n q_k(x_k | x_{1:k-1})$$
 
 In practice, this means sampling each $X_k$ from a distribution given $X_{1:k-1}$. The unnormalised weights are then
-$$
-\begin{align}
+\begin{align*}
 w_n\left(x_{1:n}\right) 
 &= \frac{\gamma_n\left(x_{1:n}\right)}{q_n\left(x_{1:n}\right)} \\ 
 &=\frac{\gamma_{n-1}\left(x_{1:n-1}\right)}{q_{n-1}\left(x_{1:n-1}\right)} \frac{\gamma_n\left(x_{1:n}\right)}{\gamma_{n-1}\left(x_{1:n-1}\right) q_n\left(x_n | x_{1:n-1}\right)} \\
 &= w_{n-1}\left(x_{1:n-1}\right) \alpha_n(x_{1:n}) \\
 &= \cdots = w_1(x_1) \prod_{k=2}^n \alpha_k(x_{1:k})
-\end{align}
-$$
+\end{align*}
+
 where the incremental importance weight function $\alpha_n(x_{1:n})$ is given by
 $$
 \alpha_n(x_{1:n}) = \frac{\gamma_n\left(x_{1:n}\right)}{\gamma_{n-1}\left(x_{1:n-1}\right) q_n\left(x_n | x_{1:n-1}\right)}
@@ -51,9 +50,22 @@ At time $n \geq 2$
 1. Sample $X_n^i \sim q_n\left(x_n | X_{1:n-1}^i\right)$
 2. Compute the weights $w_n(X_{1:n}^i) = w_{n-1}\left(X_{1:n-1}^i\right) \alpha_n\left(X_{1:n}^{i}\right)$ and $W_n^i \propto w_n(X_{1:n}^i)$
 
-***
-
 * How to choose $q_n(x_n | x_{1:n-1})$? To minimise variance of $w_n(x_{1:n})$ choose $q_n^{\mathrm{opt}}\left(x_n | x_{1:n-1}\right)=\pi_n\left(x_n | x_{1 : n-1}\right)$
+* Problem: variance of resulting estimates increases exponentially with $n$
+
+### Resampling
+
+* Resampling partially solves problem of increasing variance in some cases
+* Resample $N$ times from $\widehat{\pi}_n \left(x_{1:n}\right)$ 
+    + Either by selecting $X_{1:n}^i$ with probability $W_n^i$
+    + Or by associating a number of offspring $N_n^i$ with each particle $X_{1:n}^i$ in such a way that $N_n^{1:N}=\left(N_n^1, \ldots, N_n^N\right) \sim \mathrm{Multinomial}(\cdot | N, W_n^{1:N})$ and giving a weight of $1/N$ to each offspring
+* Other unbiased resampling schemes have been proposed in the literature which have smaller variance than by multinomial resampling, in descending order of popularity/efficiency
+    + Systematic resampling
+    + Residual resampling
+    
+### Sequential Monte Carlo
+
+* SMC methods are a combination of SIS and resampling
 
 ## Seqential Monte Carlo Sampling Methods for Bayesian Filtering
 
