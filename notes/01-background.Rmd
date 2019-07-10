@@ -6,14 +6,14 @@ Notes from @johansen2018monte
 
 For the following samplers targeting density $f$ and starting with $x^{(0)} :=\left(x_{1}^{(0)}, \ldots, x_{p}^{(0)}\right)$, iterate for $t = 1, 2, \ldots$
 
-### Metropolis-Hastings sampler
+### Metropolis-Hastings Sampler
 
 1. Draw $x \sim q\left(\cdot | x^{(t-1)}\right)$
 2. With probability $\min \left\{1, \frac{f(x) \cdot q\left(x^{(t-1)} | x\right)}{f\left(x^{(t-1)}\right) \cdot q\left(x | x^{(t-1)}\right)}\right\}$ set $x^{(t)}=x$, else set $x^{(t)}=x^{(t-1)}$
 
 Note that if the proposal $q$ is symmetric (as in random-walk metropolis-hastings) then the acceptance probability simplifies to $\min \left\{1, \frac{f(x)}{f\left(x^{(t-1)}\right)}\right\}$.
 
-### (Random scan) Gibbs sampler
+### (Random scan) Gibbs Sampler
 
 1. Draw $j \sim \text{Unif}\{1, \ldots, p\}$
 2. Draw $x_{j}^{(t)} \sim f_{x_{j} | x_{-j}}\left(\cdot | x_{1}^{(t-1)}, \ldots, x_{j-1}^{(t-1)}, x_{j+1}^{(t-1)}, \ldots, x_{p}^{(t-1)}\right)$, and set $x_i^{(t)} :=x_i^{(t-1)}$ for all $i \neq j$
@@ -21,11 +21,10 @@ Note that if the proposal $q$ is symmetric (as in random-walk metropolis-hasting
 ### (Random scan) Metropolis-within-Gibbs
 
 1. Draw $j \sim \text{Unif}\{1, \ldots, p\}$
-2. 
-    a) Draw $x_{j} \sim q_j\left(\cdot | x^{(t-1)}\right)$ and set $x = \left(x_{1}^{(t-1)}, \ldots, x_j, \ldots,  x_{p}^{(t-1)}\right)$
-    b) With probability $\min \left\{1, \frac{f(x) \cdot q\left(x^{(t-1)} | x\right)}{f\left(x^{(t-1)}\right) \cdot q\left(x | x^{(t-1)}\right)}\right\}$ set $x^{(t)}=x$, else set $x^{(t)}=x^{(t-1)}$
+2. Draw $x_{j} \sim q_j\left(\cdot | x^{(t-1)}\right)$ and set $x = \left(x_{1}^{(t-1)}, \ldots, x_j, \ldots,  x_{p}^{(t-1)}\right)$
+3. With probability $\min \left\{1, \frac{f(x) \cdot q\left(x^{(t-1)} | x\right)}{f\left(x^{(t-1)}\right) \cdot q\left(x | x^{(t-1)}\right)}\right\}$ set $x^{(t)}=x$, else set $x^{(t)}=x^{(t-1)}$
 
-## Meta-analysis, evidence synthesis, combining expert opinion etc.
+## Meta-analysis, Evidence Synthesis, Combining Expert Opinion etc.
 
 ### Multiple Experts
 
@@ -54,20 +53,25 @@ Notes from Chapter 9 of @o2006uncertain
 * "In general, while the linear opinion pool has been quite widely used in practice, the logarithmic opinion pool has been largely ignored, perhaps because it is perceived to lead to unrealistically strong aggregated beliefs"
 * Dictatorial pooling $f(\theta) = f_i(\theta)$ for some $i = 1, \ldots, n$ (not mentioned in book)
 * Cooke's method
-* *To-do: for more about opinion pooling, look at Clemen*
 
-### Aggregating expert judgement
+### Combining Probability Distributions From Experts in Risk Analysis
 
-Contexts as defined by Simon French on departmental website
+Notes from @clemen1999combining
+
+* Expert judgements have been informally used for a long time
+* "The mathematical and behavioral approaches we discuss in this paper assume that the experts have ironed out differences in definitions and that they all agree on exactly what is to be forecast or assessed. Practising risk analysts know that these are strong assumptions..." - this could be important in reference to discussion of the definition of link parameter
+* "Consulting multiple experts may be viewed as a subjective version of increasing the sample size in an experiment" - combining models is also some kind of way of increasing sample size
+
+### Aggregating Expert Judgement
+
+@french2011aggregating, survey of the current state of the art.
 
 > 
 * The Expert Problem: In this a group of experts are consulted by a decision maker who faces a specific real choice and is not a member of the group. She asks the group for their assessment of the probability of an event or for their uncertainty about some quantity or forecast. She must then assimilate their advice into her probability model and feed this into the decision analysis. She alone is responsible and accountable for the decision. In this context the emphasis is on the decision maker learning from the experts.
 * The Group Decision Problem: Here the group itself is jointly responsible and accountable for the decision; and they are their own experts. They wish that to the outside world their decision appears rational and, possibly, also fair and democratic. Thus they may wish to combine their judgements in some formal structured way. In this context, the emphasis is on supporting rational, democratic deliberations.
 * The Textbook Problem: The group is simply required to give their judgements for others to use in future, as yet undefined circumstances. The emphasis here is on reporting their judgements in a manner that offers the greatest potential for future use.
 
-Notes on @french2011aggregating, survey of the current state of the art *To-do*
-
-### The statistical basis of meta-analysis
+### The Statistical Basis of Meta-Analysis
 
 @fleiss1993review
 
@@ -75,7 +79,7 @@ Notes on @french2011aggregating, survey of the current state of the art *To-do*
     + First approach: take these $C$ studies as the only ones of interest
     + Second approach: take the $C$ studies as a sample from a larger population of studies (fixed vs random set of studies)
     
-### Bayesian approaches to random-effects meta-analysis
+### Bayesian Approaches to Random-effects Meta-analysis
 
 Notes from @smith1995bayesian
 
@@ -109,15 +113,17 @@ r^T_i &\sim \text{Binomial}\left(p^T_i, n^T_i\right) \\
 * Based on suitable DAG, see Figure 1., the joint distribution is $p(V) = \prod_{v \in V} p(v | \text{pa}(v))$
 * Used Gibbs sampling (BUGS) to perform inference
 
-![*To-do: reproduce this and similar models in Tikz* Solid line is stochastic dependence, dashed line is logical dependence](files/graphical_model.png)
+![Solid line is stochastic dependence, dashed line is logical dependence](files/graphical_model.png)
 
-## Graphical models
+*To-do: reproduce this and similar models in Tikz*
 
-### Bayesian networks
+## Graphical Models
+
+### Bayesian Networks
 
 Notes from Chapter 7 of @smith2010bayesian
 
-#### Relevance, informativeness and independence
+#### Relevance, Informativeness and Independence
 
 * Client believes that measurement $X$ is irrelevant for predicting $Y$ given the measurement $Z$, written $Y \perp X | Z$ if she believes now that once she learns the value of $Z$ then then measurement of $X$ will provide her with no extra useful information with which to predict the value of $Y$. 
 * In this case, if she is a Bayesian, then she could write her conditional density $p(y | x, z) = p(y | z)$ so that it did not depend on the value of $x$ for all possible values of $(x, y, z)$. Equivalently the joint mass function can be factorised as $p(x, y, z) = p(y | z)p(x | z)p(z)$
@@ -126,7 +132,7 @@ Notes from Chapter 7 of @smith2010bayesian
     + Perfect composition $X \perp (Y, Z) | W \iff X \perp Y | (W, Z) \iff X \perp Z | W$
 * *To-do: look at some work of Pearl*
 
-#### Bayesian networks and DAGs
+#### Bayesian Networks and DAGs
 
 * Bayesian network is a simple and convenient way of representing a factorisation of a joint pdf of a vector of random variables $\mathbf{X} = (X_1, X_2, \ldots, X_n)$.
 * Always the case that $p(\mathbf{x}) = p(x_1)p(x_2 | x_1)p(x_3 | x_2, x_1) \times \cdots \times p(x_n | x_1, x_2, \ldots, x_{n-1})$ 
@@ -136,7 +142,7 @@ Notes from Chapter 7 of @smith2010bayesian
 * Definition: A directed acyclic graph (DAG) $\mathcal{G} = (\mathcal{V}, \mathcal{E})$ with set of vertices $\mathcal{V}$ and set of directed edges $\mathcal{E}$ is a directed graph having no directed cycles
 * Definition: A Bayesian network (BN) on the set of measurements $\{X_1, X_2, \ldots, X_n\}$ is a set of the $n-1$ conditional irrelevance statements together with a DAG $\mathcal{G}$. The set of vertices $\mathcal{G} = \{X_1, X_2, \ldots, X_n\}$ and a directed edge from $X_i$ to $X_j$ is in $\mathcal{E}$ if and only if $i \in Q_j$
 
-### Factor graphs
+### Factor Graphs
 
 Notes from Chapter 8 of @bishop2006pattern
 
@@ -149,10 +155,9 @@ Notes from Chapter 8 of @bishop2006pattern
 
 * Factor graphs are bipartite because they consist of two distinct kinds of nodes, and all links go between nodes of opposite type
 
+## Miscellaneous Reading
 
-## Miscellaneous reading
-
-### Bayesian calibration of computer models
+### Bayesian Calibration of Computer Models
 
 Notes from @kennedy2001bayesian
 
@@ -172,7 +177,7 @@ Notes from @kennedy2001bayesian
 * Raftery et al. (1995) an attempt to combine prior expert opinion on both the calibration parameters and the model output: Bayesian synthesis. Critizised by Wolpert (1995) and Schweder and Hjort (1996), and in a follow-up paper Poole and Raftery (1998) propose Bayesian melding. Neither method explicitly recognises model inadequacy (!!) - related to link parameter discussions?
 * You can use $f(\cdot) \sim \mathcal{GP}(m(\cdot), k(\cdot, \cdot))$ to model unknown functions as random 
 
-### Inference for deterministic simulation models: the Bayesian melding approach
+### Inference for Deterministic Simulation Models: the Bayesian Melding Approach
 
 Notes from @poole2000inference
 
