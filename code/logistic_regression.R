@@ -171,5 +171,12 @@ model2 <- mwg(b0 = rep(0, 4), X = X2, mu = mu2, sigma = sigma2,
 names(model2$chain) <- c("b02", "b2", "b3", "b5") # Correct the naming
 saveRDS(model2, "results/model2.Rds")
 
-colMeans(model1$chains); b1
-colMeans(model2$chains); b2 # Still getting close: good!
+mcmc_trace(model1$chain) # Traceplots
+mcmc_hist(model1$chain) # Histograms
+model1$accept
+colMeans(model1$chain); b1
+
+mcmc_trace(model2$chain) # Traceplots
+mcmc_hist(model2$chain) # Histograms
+model2$accept
+colMeans(model2$chain); b2
