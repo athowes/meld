@@ -18,6 +18,6 @@ delete_merged_file: true
 geometry: "left=4cm, right=3cm, top=2.5cm, bottom=2.5cm"
 ---
 
-# Notation
+# Notation {-}
 
 Captial $X$ is a random variable, $\mathbf{X}$ is a vector of random variables and $x$ and $\mathbf{x}$ are their realisations
