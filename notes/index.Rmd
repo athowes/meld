@@ -4,9 +4,12 @@ author: "Adam Howes"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
 output: 
-  bookdown::gitbook: default
+  bookdown::gitbook: 
+    split_by: none
   bookdown::pdf_book:
     template: null
+    includes:
+      in_header: preamble.tex
 documentclass: book
 bibliography: [citations.bib]
 biblio-style: apalike
