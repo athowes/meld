@@ -16,7 +16,7 @@ summary(mle)
 
 b <- mle$coefficients
 
-# Full model --------------------------------------------------------------
+# Full Model --------------------------------------------------------------
 
 # The plan is to use Metropolis-within-Gibbs to sample from the posterior
 
@@ -74,7 +74,7 @@ accept_rate <- function(b, chains) {
   sum(rowSums(chains - lag) == 0) / nrow(chains)
 }
 
-# Scaling and running -----------------------------------------------------
+# Scaling and Running -----------------------------------------------------
 
 test <- mwg(b, X, mu, sigma, scale = rep(0.1, 6), nsim = 10^4) # Initialising at roughly the right values
 mcmc_trace(test$chain)
@@ -123,7 +123,7 @@ saveRDS(full, "results/full_model.Rds")
 
 colMeans(full$chain); b # Pretty close to the ML estimates, so the code is probably correct
 
-# Subset models -----------------------------------------------------------
+# Subset Models -----------------------------------------------------------
 
 head(X) # Reminder about the variables we have
 # Only using a subset of the predictors in each model
@@ -163,13 +163,13 @@ sigma2 <- rep(0.1, p2)
 # Run the samplers
 model1 <- mwg(b0 = rep(0, 4), X = X1, mu = mu1, sigma = sigma1,
                scale = my_guess[c(1, 2, 5, 6)], nsim = 10^5)
-names(model1$chain) <- c("b01", "b1", "b4", "b5") # Correct the naming
-saveRDS(model1, "results/model1.Rds")
+names(model1$chain) <- c("b0", "b1", "b4", "b5") # Correct the naming
+saveRDS(model1, "output/model1.Rds")
 
 model2 <- mwg(b0 = rep(0, 4), X = X2, mu = mu2, sigma = sigma2,
                scale = my_guess[c(1, 3, 4, 6)], nsim = 10^5)
-names(model2$chain) <- c("b02", "b2", "b3", "b5") # Correct the naming
-saveRDS(model2, "results/model2.Rds")
+names(model2$chain) <- c("b0", "b2", "b3", "b5") # Correct the naming
+saveRDS(model2, "output/model2.Rds")
 
 mcmc_trace(model1$chain) # Traceplots
 mcmc_hist(model1$chain) # Histograms
@@ -180,3 +180,5 @@ mcmc_trace(model2$chain) # Traceplots
 mcmc_hist(model2$chain) # Histograms
 model2$accept
 colMeans(model2$chain); b2
+
+# Markov Combination ------------------------------------------------------

@@ -242,11 +242,11 @@ sigma2 <- rep(0.1, p2)
 ```{r eval=FALSE}
 model1 <- mwg(b0 = rep(0, 4), X = X1, mu = mu1, sigma = sigma1,
                scale = my_guess[c(1, 2, 5, 6)], nsim = 10^5)
-names(model1$chain) <- c("b01", "b1", "b4", "b5") # Correct the naming
+names(model1$chain) <- c("b0", "b1", "b4", "b5") # Correct the naming
 
 model2 <- mwg(b0 = rep(0, 4), X = X2, mu = mu2, sigma = sigma2,
                scale = my_guess[c(1, 3, 4, 6)], nsim = 10^5)
-names(model2$chain) <- c("b02", "b2", "b3", "b5") # Correct the naming
+names(model2$chain) <- c("b0", "b2", "b3", "b5") # Correct the naming
 ```
 
 ```{r echo=FALSE}
@@ -292,12 +292,17 @@ Therefore the Markov combination in this case is
 p_{\mathrm{comb}}\left(\phi, \psi_1, \psi_2, \mathbf{y}_1, \mathbf{y}_2\right) &= \frac{p_1\left(\phi, \psi_1, \mathbf{y}_1\right)p_2\left(\phi, \psi_2, \mathbf{y}_2\right)}{p(\phi)} \\
 &\propto \frac{p_1(\beta_0, \beta_1, \beta_4, \beta_5 | \mathbf{y}) p_2(\beta_0, \beta_2, \beta_3, \beta_5 | \mathbf{y})}{p(\beta_0, \beta_5)} \\
 &\propto \prod_{j=0}^5\exp\left(\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2\right) \\
-&\times \prod_{i=1}^{2035} q_1\left(x_i\right)^{y_i}\left(1-q_1\left(x_i\right)\right)^{1-y_i} q_2\left(x_i\right)^{y_i}\left(1-q_2\left(x_i\right)\right)^{1-y_i} \tag{*}
+&\times \prod_{i=1}^{2035} q_1\left(x_i\right)^{y_i}\left(1-q_1\left(x_i\right)\right)^{1-y_i} q_2\left(x_i\right)^{y_i}\left(1-q_2\left(x_i\right)\right)^{1-y_i} (\#eq:target)
 \end{align*}
 
 Informally $p_{\mathrm{comb}}$ contains the product of the priors on the full set of parameters $(\phi, \psi_1, \psi_2)$ with both likelihoods from $\mathcal{M}_1$ and $\mathcal{M}_2$. So this is almost like Bayesian inference for full model but with a different likelihood. It seems as if the information contained by the data $\mathcal{D}$ is being used more than once.
 
-Want to sample from the target (*) using the methods described in @goudie2019joining
+Want to sample from \@ref(eq:target) using the methods described in @goudie2019joining. As before, it is convenient to work in terms of a logarithmic version
+
+$$
+\log p_{\mathrm{comb}}\left(\phi, \psi_1, \psi_2, \mathbf{y}_1, \mathbf{y}_2\right) = 
+\sum_{j=0}^5\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2 + \prod_{i=1}^{2035} q_1\left(x_i\right)^{y_i}\left(1-q_1\left(x_i\right)\right)^{1-y_i} q_2\left(x_i\right)^{y_i}\left(1-q_2\left(x_i\right)\right)^{1-y_i}
+$$
 
 #### Metropolis-within-Gibbs
 
