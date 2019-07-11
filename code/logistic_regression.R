@@ -41,7 +41,7 @@ logpost <- function(b, X, mu, sigma) {
 # Function to update jth component of beta via RWMH step
 mh <- function(b, X, mu, sigma, j, scale) {
   y <- b
-  y[j] <- y[j] + rnorm(1, mean = 0, sd = scale[j])
+  y[j] <- y[j] + rnorm(1, mean = 0, sd = scale)
   a <- exp(logpost(y, X, mu, sigma) - logpost(b, X, mu, sigma)) # Acceptance probability
   if(a > runif(1)) return(y) else return(b)
 }
@@ -59,7 +59,7 @@ mwg <- function(b0, X, mu, sigma, scale, nsim, random_scan = TRUE) {
       j <- (i %% p) + 1 # Systematic scan
     }
     s[1, j] <- s[1, j] + 1 # Update pick count
-    r[i, ] <- mh(r[i-1, ], X, mu, sigma, j, scale)
+    r[i, ] <- mh(r[i-1, ], X, mu, sigma, j, scale[j])
     if(!identical(r[i, ], r[i-1, ])) s[2, j] <- s[2, j] + 1 # Update accept count
   }
   r <- as.data.frame(r)
@@ -182,3 +182,75 @@ model2$accept
 colMeans(model2$chain); b2
 
 # Markov Combination ------------------------------------------------------
+
+logtarget <- function(b, s1, s2, X1, X2, mu1, mu2, sigma1, sigma2) {
+  b1 <- b[s1]; b2 <- b[s2]
+  as.numeric(logpost(b1, X1, mu1, sigma1) +
+             logpost(b2, X2, mu2, sigma2) -
+             sum((b1[c(1, 4)] - mu1[c(1, 4)])^2 / 2*sigma1[c(1, 4)]))
+}
+
+comb_mwg <- function(b0, s1, s2, X, mu, sigma, scale, nsim) { # Systematic-scan
+  X1 <- X[, s1]; X2 <- X[, s2]
+
+  mu1 <- mu[s1]; mu2 <- mu[s2]
+
+  sigma1 <- sigma[s1]; sigma2 <- sigma[s2]
+
+  p <- length(b0)
+  r <- array(NA, c(nsim, p))
+  r[1, ] <- b0 # Init chain
+
+  order <- c(setdiff(s1, s2), setdiff(s2, s1), intersect(s1, s2))
+
+  for (i in 2:nsim) {
+    j <- order[((i - 2) %% p) + 1] # Index of the parameter to be updated
+
+    if(j %in% setdiff(s1, s2)) {
+      y <- r[i-1, ]
+      y[j] <- y[j] + rnorm(1, mean = 0, sd = scale[j])
+      a <- exp(logpost(y[s1], X1, mu1, sigma1) - logpost(b[s1], X1, mu1, sigma1))
+      if(a > runif(1)) {
+        r[i, ] <- y
+      } else {
+        r[i, ] <- r[i-1, ]
+      }
+    }
+
+    if(j %in% setdiff(s2, s1)) {
+      y <- r[i-1, ]
+      y[j] <- y[j] + rnorm(1, mean = 0, sd = scale[j])
+      a <- exp(logpost(y[s2], X2, mu2, sigma2) - logpost(b[s2], X2, mu2, sigma2))
+      if(a > runif(1)) {
+        r[i, ] <- y
+      } else {
+        r[i, ] <- r[i-1, ]
+      }
+    }
+
+    if(j %in% intersect(s2, s1)) {
+      y <- r[i-1, ]
+      y[j] <- y[j] + rnorm(1, mean = 0, sd = scale[j])
+      a <- exp(logtarget(y, s1, s2, X1, X2, mu1, mu2, sigma1, sigma2) -
+               logtarget(b, s1, s2, X1, X2, mu1, mu2, sigma1, sigma2))
+      if(a > runif(1)) {
+        r[i, ] <- y
+      } else {
+        r[i, ] <- r[i-1, ]
+      }
+    }
+  }
+  r <- as.data.frame(r)
+  names(r) <- sprintf("b%d", 0:(p-1))
+  return(r)
+}
+
+b0 <- rep(0, 6)
+s1 <- c(1, 2, 5, 6)
+s2 <- c(1, 3, 4, 6)
+
+test <- comb_mwg(b0, s1, s2, X, mu, sigma, scale = my_guess, nsim = 10^5)
+saveRDS(test, "output/comb.Rds")
+colMeans(test)
+mcmc_trace(test)
+mcmc_hist(test)

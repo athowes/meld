@@ -125,7 +125,7 @@ Use Metropolis-within-Gibbs \@ref(mwg) to perform inference.
 # Function to update jth component of beta via RWMH step
 mh <- function(b, X, mu, sigma, j, scale) {
   y <- b
-  y[j] <- y[j] + rnorm(1, mean = 0, sd = scale[j])
+  y[j] <- y[j] + rnorm(1, mean = 0, sd = scale)
   a <- exp(logpost(y, X, mu, sigma) - logpost(b, X, mu, sigma)) # Acceptance probability
   if(a > runif(1)) return(y) else return(b)
 }
@@ -143,7 +143,7 @@ mwg <- function(b0, X, mu, sigma, scale, nsim, random_scan = TRUE) {
       j <- (i %% p) + 1 # Systematic scan
     }
     s[1, j] <- s[1, j] + 1 # Update pick count
-    r[i, ] <- mh(r[i-1, ], X, mu, sigma, j, scale)
+    r[i, ] <- mh(r[i-1, ], X, mu, sigma, j, scale[j])
     if(!identical(r[i, ], r[i-1, ])) s[2, j] <- s[2, j] + 1 # Update accept count
   }
   r <- as.data.frame(r)
@@ -302,11 +302,79 @@ Want to sample from \@ref(eq:target) using the methods described in @goudie2019j
 $$
 \sum_{j=0}^5\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2 + \sum_{i=1}^{2035} \{ {y_i}(\log q_1\left(x_i\right) + \log q_2\left(x_i\right))  + (1 - y_i) (\log \left(1-q_1\left(x_i\right)\right) + \log \left(1-q_2\left(x_i\right)\right)\}.
 $$
+```{r}
+logtarget <- function(b, s1, s2, X1, X2, mu1, mu2, sigma1, sigma2) {
+  b1 <- b[s1]; b2 <- b[s2]
+  as.numeric(logpost(b1, X1, mu1, sigma1) +
+             logpost(b2, X2, mu2, sigma2) -
+             sum((b1[c(1, 4)] - mu1[c(1, 4)])^2 / 2*sigma1[c(1, 4)]))
+}
+```
 
 #### Metropolis-within-Gibbs
 
-* Update first latent parameter $\psi_1$ by systematic scan Metropolis-within-Gibbs
-* Update second latent parameter $\psi_2$ by systematic scan Metropolis-within-Gibbs
-* Update link parameter $\phi$ by Metropolis-within-Gibbs
+* Update first latent parameter $\psi_1$ by systematic scan MWG where target-to-proposal is identical to that of $\mathcal{M}_1$
+* Update second latent parameter $\psi_2$ by systematic scan MWG where target-to-proposal is identical to that of $\mathcal{M}_2$
+* Update link parameter $\phi$ by by systematic scan MWG
+
+```{r}
+# This is getting a bit complicated
+
+comb_mwg <- function(b0, s1, s2, X, mu, sigma, scale, nsim) { # Systematic-scan
+  X1 <- X[, s1]; X2 <- X[, s2]
+
+  mu1 <- mu[s1]; mu2 <- mu[s2]
+
+  sigma1 <- sigma[s1]; sigma2 <- sigma[s2]
+
+  p <- length(b0)
+  r <- array(NA, c(nsim, p))
+  r[1, ] <- b0 # Init chain
+
+  order <- c(setdiff(s1, s2), setdiff(s2, s1), intersect(s1, s2))
+
+  for (i in 2:nsim) {
+    j <- order[((i - 2) %% p) + 1] # Index of the parameter to be updated
+
+    if(j %in% setdiff(s1, s2)) {
+      y <- r[i-1, ]
+      y[j] <- y[j] + rnorm(1, mean = 0, sd = scale[j])
+      a <- exp(logpost(y[s1], X1, mu1, sigma1) - logpost(b[s1], X1, mu1, sigma1))
+      if(a > runif(1)) {
+        r[i, ] <- y
+      } else {
+        r[i, ] <- r[i-1, ]
+      }
+    }
+
+    if(j %in% setdiff(s2, s1)) {
+      y <- r[i-1, ]
+      y[j] <- y[j] + rnorm(1, mean = 0, sd = scale[j])
+      a <- exp(logpost(y[s2], X2, mu2, sigma2) - logpost(b[s2], X2, mu2, sigma2))
+      if(a > runif(1)) {
+        r[i, ] <- y
+      } else {
+        r[i, ] <- r[i-1, ]
+      }
+    }
+
+    if(j %in% intersect(s2, s1)) {
+      y <- r[i-1, ]
+      y[j] <- y[j] + rnorm(1, mean = 0, sd = scale[j])
+      a <- exp(logtarget(y, s1, s2, X1, X2, mu1, mu2, sigma1, sigma2) -
+               logtarget(b, s1, s2, X1, X2, mu1, mu2, sigma1, sigma2))
+      if(a > runif(1)) {
+        r[i, ] <- y
+      } else {
+        r[i, ] <- r[i-1, ]
+      }
+    }
+  }
+  r <- as.data.frame(r)
+  names(r) <- sprintf("b%d", 0:(p-1))
+  return(r)
+}
+
+```
 
 #### Multi-stage Metropolis-within-Gibbs
