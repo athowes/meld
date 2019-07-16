@@ -1,86 +1,21 @@
-# Gambia Malaria Data
+# Logistic Regression Combination
 
 ```{r echo=FALSE}
-options(scipen = 999)
-pacman::p_load(tidyverse, geoR, bayesplot)
-```
-
-The `gambia` dataset from the R package `geoR` contains observations of $n = 2035$ Gambian children. The eight measured variables are:
-
-* `x` the x-coordinate of the village (Universal Transverse Mercator - similar to latitude and longitude)
-* `y` the y-coordinate of the village (UTM)
-* `pos` presence (1) or absence (0) of malaria in a blood sample taken from the child
-* `age` age of the child, in days
-* `netuse` indicator variable denoting whether (1) or not (0) the child regularly sleeps under a bed-net
-* `treated` indicator variable denoting whether (1) or not (0) the bed-net is treated (coded 0 if `netuse` = 0)
-* `green` satellite-derived measure of the green-ness of vegetation in the immediate vicinity of the village (arbitrary units)
-* `phc` indicator variable denoting the presence (1) or absence (0) of a health center in the village
-
-The aim is to fit models predicting `pos`, the presence of malaria, using the other variables (exclusing the positions `x` and `y`).
-
-```{r}
 data(gambia)
 X <- as.matrix(gambia[, c(4:8)])
 X <- cbind(intercept = 1, X) # Add intercept column to design matrix
 Y <- gambia[, 3] # Response variable
 n <- length(Y)
-```
 
-## Bayesian Logistic Regression
+mle <- glm(Y ~ X - 1, family = "binomial") # Logistic regression using MLE
+b <- mle$coefficients
+summary(mle)
 
-Consider response $Y \in \{0, 1\}$ modelled as $Y \sim \text{Bern}(q)$ and covariates $x \in \mathbb{R}^p$ with
-
-$$
-\log\left(\frac{q(x)}{1-q(x)}\right) = \beta_0 + \beta^{T} x,
-$$
-where $\beta \in \mathbb{R}$ and $\beta \in \mathbb{R}^p$. Then
-
-$$
-q(x) = \frac{\exp \left(\beta_0 + \beta^{T} x\right)}{1+ \exp\left(\beta_0 + \beta^{T} x\right)}
-$$
-
-```{r}
 # Classify to 1 with probability
 q <- function(x, b) {
   exp(b %*% x) / (1 + exp(b %*% x))
 }
-```
 
-Observe labelled data $\mathcal{D} = \{(x_1, y_1), \ldots, (x_n, y_n)\}$. The likelihood function is
-
-$$
-\mathcal{L}(\beta_{0}, \beta) = \prod_{i=1}^{n} q\left(x_i\right)^{y_i}\left(1-q(x_i)\right)^{1-y_i}
-$$
-Place Gaussian priors on $\beta$ and $\beta_0$ such that
-
-$$
-\beta_0 \sim \mathcal{N}(\mu_0, \sigma_0^2), \; \beta \sim \mathcal{N}_p(\mu, \text{diag}(\sigma_1^2, \ldots, \sigma_p^2))
-$$
-Then the posterior is proportional to
-
-$$
-p(\beta_0, \beta | y_1, \ldots, y_n) \propto \prod_{j=0}^p\exp\left(\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2\right) \prod_{i=1}^{n} q\left(x_i\right)^{y_i}\left(1-q\left(x_i\right)\right)^{1-y_i}.
-$$
-Taking the logarithm gives
-
-$$
-\log p(\beta_0, \beta | y_1, \ldots, y_n) \propto \sum_{j=0}^p \frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2 +  \sum_{i=1}^{n} \{ {y_i}\log q\left(x_i\right) + (1 - y_i) \log \left(1-q\left(x_i\right)\right)\}.
-$$
-The log-likelihood can be rewritten as
-
-\begin{align*}
-\sum_{i=1}^{n} \{ {y_i}\log q\left(x_i\right) + (1 - y_i) \log \left(1-q\left(x_i\right)\right) \}
-&= \sum_{i=1}^{n} \{ {y_i}\log \left(\frac{q\left(x_i\right)}{1-q\left(x_i\right)}\right) + \log \left(1-q\left(x_i\right)\right) \} \\
-&= \sum_{i=1}^{n} \{ {y_i}\log \left(\frac{q\left(x_i\right)}{1-q\left(x_i\right)}\right) + \log \left(1-q\left(x_i\right)\right) \} \\
-&= \sum_{i=1}^{n} \{ {y_i}\left(\beta_0 + \beta^{T} x\right) - \log \left(1 + \exp(\beta_0 + \beta^{T} x)\right)\},
-\end{align*}
-
-so that the log-posterior is
-$$
-\log p(\beta_0, \beta | y_1, \ldots, y_n) \propto \sum_{j=0}^p \frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2 + \sum_{i=1}^{n} \{{y_i}\left(\beta_0 + \beta^{T} x\right) - \log \left(1 + \exp(\beta_0 + \beta^{T} x)\right)\}
-$$
-
-```{r}
 # (proportional to) log posterior in the indep normals prior case
 logpost <- function(b, X, mu, sigma) {
   logprior <- sum((b - mu)^2 / 2*sigma)
@@ -88,40 +23,7 @@ logpost <- function(b, X, mu, sigma) {
   loglike <- sum(nu[Y == 1]) + sum(-log(1 + exp(nu)))
   logprior + loglike
 }
-```
 
-## Full Model
-
-The full model $\mathcal{M}$ is the logistic regression of response `pos` on the other variables including an intercept term but excluding the co-ordinates `x` and `y`.
-$$
-\log\left(\frac{q(x)}{1-q(x)}\right) = \eta
-$$
-
-$$
-\eta = \beta_0 + \beta_1 \cdot \texttt{age} + \beta_2 \cdot \texttt{netuse} + \beta_3 \cdot \texttt{treated} + \beta_4 \cdot \texttt{green} + \beta_5 \cdot \texttt{phc}
-$$
-
-### Maximum-likelihood
-
-Fitting a (frequentist) logisitic regression gives
-
-```{r}
-mle <- glm(Y ~ X - 1, family = "binomial") # Logistic regression using MLE
-b <- mle$coefficients
-summary(mle)
-```
-
-### Bayesian
-
-Set independent normal priors with $\mu_0 = 0$, $\mu = 0$ and $\sigma_j = 0.1$ for all $j$, that is
-
-$$
-\beta_j \sim \mathcal{N}(0, 0.1), \; \forall j = 0, \ldots, 5
-$$
-
-Use Metropolis-within-Gibbs \@ref(mwg) to perform inference.
-
-```{r}
 # Function to update jth component of beta via RWMH step
 mh <- function(b, X, mu, sigma, j, scale) {
   y <- b
@@ -151,30 +53,8 @@ mwg <- function(b0, X, mu, sigma, scale, nsim, random_scan = TRUE) {
   s[3, ] <- s[2, ] / s[1, ] # Acceptance rates
   return(list("chain" = r, "accept" = s))
 }
-```
 
-Use `my_guess` for scaling (found by manual adjustment)
-
-```{r}
 my_guess <- c(0.175, 0.00025, 0.2, 0.3, 0.005, 0.2)
-```
-
-Run
-
-```{r eval = FALSE}
-full <- mwg(rep(0, 6), X, mu, sigma, scale = my_guess, nsim = 10^5)
-```
-
-```{r echo = FALSE}
-full <- readRDS(file = "../output/full_model.Rds")
-```
-
-```{r warning=FALSE, message=FALSE}
-# Want to do pairs plots but having trouble rendering
-mcmc_trace(full$chain) # Traceplots
-mcmc_hist(full$chain) # Histograms
-full$accept
-colMeans(full$chain); b # Pretty close to the ML estimates, so the code is probably correct
 ```
 
 ## Submodels
@@ -266,7 +146,7 @@ model2$accept
 colMeans(model2$chain); b2
 ```
 
-### Markov Combination
+## Markov Combination
 
 The submodels have consistent prior marginals in the link parameter and Markov combination can be applied.
 
@@ -311,7 +191,7 @@ logtarget <- function(b, s1, s2, X1, X2, mu1, mu2, sigma1, sigma2) {
 }
 ```
 
-#### Metropolis-within-Gibbs
+### Metropolis-within-Gibbs
 
 * Update first latent parameter $\psi_1$ by systematic scan MWG where target-to-proposal is identical to that of $\mathcal{M}_1$
 * Update second latent parameter $\psi_2$ by systematic scan MWG where target-to-proposal is identical to that of $\mathcal{M}_2$
@@ -377,4 +257,22 @@ comb_mwg <- function(b0, s1, s2, X, mu, sigma, scale, nsim) { # Systematic-scan
 
 ```
 
-#### Multi-stage Metropolis-within-Gibbs
+```{r eval=FALSE}
+b0 <- rep(0, 6)
+s1 <- c(1, 2, 5, 6)
+s2 <- c(1, 3, 4, 6)
+
+test <- comb_mwg(b0, s1, s2, X, mu, sigma, scale = my_guess, nsim = 10^5)
+```
+
+```{r echo=FALSE}
+comb <- readRDS(file = "../output/comb.Rds")
+```
+
+```{r}
+mcmc_trace(comb)
+mcmc_hist(comb)
+colMeans(comb)
+```
+
+This doesn't look too good...

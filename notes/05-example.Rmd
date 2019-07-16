@@ -1,0 +1,31 @@
+# Toy Example
+
+Submodel 1
+
+$$
+\theta \sim \text{Beta}(a, b) \\
+Y_1 \sim \text{Bin}(m, \theta)
+$$
+Submodel 2
+
+$$
+\theta \sim \text{Beta}(c, d) \\
+Y_2 \sim \text{Geo}(\theta)
+$$
+```{r}
+n1 <- 10
+n2 <- 10
+
+m <- 30
+
+a <- 5
+b <- 10
+
+c <- 4
+d <- 6
+
+theta <- 0.55
+
+y1 <- rbinom(n1, m, theta)
+y2 <- rgeom(n2, theta)
+```

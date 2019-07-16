@@ -34,7 +34,7 @@ Notes from @goudie2019joining
 
 ## Markov Combination
 
-Goudie cites @dawid1993hyper and @massa2010combining. *To-do: look more into these*
+Goudie cites @dawid1993hyper and @massa2010combining. *To-do: look at these*
 
 Suppose that the marginals are consistent i.e. $p_m(\phi) = p(\phi)$ for all $m$ then one can define the Markov combination $p_\text{comb}$ of submodels $p_1, \ldots, p_m$ as
 
@@ -72,7 +72,9 @@ $$
 R\left(\phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{M}^{\star}, \phi, \psi_{1}, \ldots, \psi_{M}\right) = p_{\mathrm{pool}}\left(\phi^{\star}\right) \prod_{m=1}^{M} \frac{p_{m}\left(\phi^{\star}, \psi_{m}^{\star}, y_{m}\right)}{p_{m}\left(\phi^{\star}\right)} \times \frac{1}{q\left(\phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{M}^{\star} | \phi, \psi_{1}, \ldots, \psi_{M}\right)}
 $$
 
-### Metropolis-within-Gibbs 
+### Metropolis-within-Gibbs
+
+Goudie cites @miiller1991generic for MWG.
 
 Sample from the full conditionals using Metropolis-Hastings. 
 
@@ -102,6 +104,6 @@ Define $l$th stage posterior as
 $$
 p_{\text {meld,}l}\left(\phi, \psi_{1}, \ldots, \psi_{\ell} | y_{1}, \ldots, y_{\ell}\right) \propto \prod_{m=1}^{\ell}\left(\frac{p_{m}\left(\phi, \psi_{m}, y_{m}\right)}{p_{m}(\phi)} p_{\mathrm{pool}, m}(\phi)\right)
 $$
-**Basis** obtain samples $\left(\phi^{(h, 1)}, \psi_{1}^{(h, 1)}\right)$ for $h=1, \ldots, H_{1}$ from $p_{\text {meld,}1}\left(\phi, \psi_{1} | y_{1}\right)$ (by MCMC typically)
+**Stage 1.** obtain samples $\left(\phi^{(h, 1)}, \psi_{1}^{(h, 1)}\right)$ for $h=1, \ldots, H_{1}$ from $p_{\text {meld,}1}\left(\phi, \psi_{1} | y_{1}\right)$ (by MCMC typically)
 
-**Inductive** construct a Metropolis-within-Gibbs sampler for $\left(\phi, \psi_{1}, \ldots, \psi_{\ell}\right)$ given the data $\left(y_{1}, \ldots, y_{\ell}\right)$
+**Stage $l$.** construct a Metropolis-within-Gibbs sampler for $\left(\phi, \psi_1, \ldots, \psi_\ell\right)$ given the data $\left(y_1, \ldots, y_\ell\right)$. The parameter $\phi_\ell$ is updated, conditional on the link parameter $\phi$ and parameters $\phi_1, \ldots, \phi_{\ell-1}$ using a Metropolis-Hastings step (say). The samples from stage $\ell-1$ are used as a proposal to update $\phi_1, \ldots, \phi_{\ell-1}$ and the link parameter $\phi$

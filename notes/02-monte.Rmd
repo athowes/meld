@@ -1,0 +1,235 @@
+# Monte Carlo
+
+Notes from @johansen2018monte
+
+> "Represent the solution of a problem as a parameter of a hypothetical population, and using a random sequence of numbers to construct a sample of the population, from which statistical estimates of the parameter can be obtained"
+
+* Mainly want to approximate a generic probability density $f(x)$
+* If it is possible to sample $X_i \sim f(x)$ for $i = 1,\ldots, N$ then Monte Carlo approximates $f(x)$ by the empirical measure $\widehat{f}(x) = \frac{1}{N} \sum_{i=1}^{N} \delta_{X_i}(x)$
+* Can approximate the expectation of any test function $\varphi: \mathcal{X} \to \mathbb{R}$ given by $\mathbb{E}_f [\varphi(X)] := \int \varphi(x) f(x) dx$ as $\int \varphi(x) \widehat{f}(x) dx = \frac{1}{N} \sum_{i=1}^{N} \varphi(X_i)$
+* Often it's not possible to sample from $f$, instead sample from a importance density (also called proposal density) $g$ whose support contains that of $f$ 
+    + Rejection sampling: only keep samples $X \sim g(x)$ with probability $f(X)/g(X)$
+    + Importance sampling: keep all the samples but weight them by the importance ratio $w(X) = f(X)/g(X)$ (preferred to rejection sampling for the most part)
+* Accuracy of importance sampling for approximating integrals, for most test functions $\varphi$, depends mostly on the variance of the weights [@liu1996metropolized]. This can be quantified by the effective sample size which can be estimated by
+
+$$
+\text{ESS} = \frac{N}{1 + \text{Var}(f(X)/g(X))} \approx \frac{\left(\sum_{i=1}^N w_i \right)^2}{\sum_{i=1}^N w_i^w}
+$$
+
+* Importance sampling is roughly as accurate as using an iid sample of size $ESS$ from $f(x)$
+* Markov Chain Monte Carlo (MCMC): generate a Markov chain whose stationary distribution is the target distribution $f$
+
+For the following samplers targeting density $f$ and starting with $\mathbf{x}^{(0)} :=\left(x_{1}^{(0)}, \ldots, x_{p}^{(0)}\right)$, iterate for $t = 1, 2, \ldots$
+
+## Metropolis-Hastings Sampler
+
+>
+1. Draw $\mathbf{x} \sim q\left(\cdot | \mathbf{x}^{(t-1)}\right)$
+2. With probability $\min \left\{1, \frac{f(\mathbf{x}) \cdot q\left(\mathbf{x}^{(t-1)} | \mathbf{x}\right)}{f\left(\mathbf{x}^{(t-1)}\right) \cdot q\left(\mathbf{x} | \mathbf{x}^{(t-1)}\right)}\right\}$ set $\mathbf{x}^{(t)}=\mathbf{x}$, else set $\mathbf{x}^{(t)}=\mathbf{x}^{(t-1)}$
+
+Note that if the proposal $q$ is symmetric (as in random-walk metropolis-hastings) then the acceptance probability simplifies to $\min \left\{1, \frac{f(\mathbf{x})}{f\left(\mathbf{x}^{(t-1)}\right)}\right\}$.
+
+## Gibbs Sampler
+
+Website reference: https://m-clark.github.io/docs/ld_mcmc/#gibbs_sampler
+
+Random-scan Gibbs sampler, for $j = 1, \ldots, p$
+
+> 
+1. Draw $j \sim \text{Unif}\{1, \ldots, p\}$
+2. Draw $x_j^{(t)} \sim f_{x_j | \mathbf{x}_{-j}}\left(\cdot | x_{1}^{(t-1)}, \ldots, x_{j-1}^{(t-1)}, x_{j+1}^{(t-1)}, \ldots, x_{p}^{(t-1)}\right)$, and set $x_i^{(t)} :=x_i^{(t-1)}$ for all $i \neq j$
+
+Systematic-scan Gibbs sampler, for $j = 1, \ldots, p$
+
+> 
+1. Draw $x_j^{(t)} \sim f_{x_j | \mathbf{x}_{-j}}\left(\cdot | x_{1}^{(t)}, \ldots, x_{j-1}^{(t)}, x_{j+1}^{(t-1)}, \ldots, x_{p}^{(t-1)}\right)$
+
+* Introduced by @turchin1971computation and later by @geman1987stochastic (Johansen cites the second as the first proposal)
+* Advantage: often efficient when it is appropriate due to 100% accentance rate
+* Disadvantage: doesn't work well when there is high correlation between parameters
+
+## (Random scan) Metropolis-within-Gibbs {#mwg}
+
+Website reference: https://m-clark.github.io/docs/ld_mcmc/#metropolis-within-gibbs
+
+>
+1. Draw $j \sim \text{Unif}\{1, \ldots, p\}$
+2. Draw $x_{j} \sim q_j\left(\cdot | \mathbf{x}^{(t-1)}\right)$ and set $\mathbf{x} = \left(x_{1}^{(t-1)}, \ldots, x_j, \ldots,  x_{p}^{(t-1)}\right)$
+3. With probability $\min \left\{1, \frac{f(\mathbf{x}) \cdot q\left(\mathbf{x}^{(t-1)} | \mathbf{x}\right)}{f\left(\mathbf{x}^{(t-1)}\right) \cdot q\left(\mathbf{x} | \mathbf{x}^{(t-1)}\right)}\right\}$ set $\mathbf{x}^{(t)}=\mathbf{x}$, else set $\mathbf{x}^{(t)}=\mathbf{x}^{(t-1)}$
+
+* The original MCMC algorithm, introduced in @metropolis1953equation, predating Gibbs sampling
+* Componentwise sampling usually ignores parameter correlation
+* Since MWG is a componentwise algorithm, it is most efficient when the acceptance rate of each parameter is 0.44 (rather than 0.234)
+
+## Example: Gambia Malaria Data
+
+```{r echo=FALSE}
+options(scipen = 999)
+pacman::p_load(tidyverse, geoR, bayesplot)
+```
+
+The `gambia` dataset from the R package `geoR` [@ribeiro2007geor] contains observations of $n = 2035$ Gambian children. The eight measured variables are:
+
+* `x` the x-coordinate of the village (Universal Transverse Mercator - similar to latitude and longitude)
+* `y` the y-coordinate of the village (UTM)
+* `pos` presence (1) or absence (0) of malaria in a blood sample taken from the child
+* `age` age of the child, in days
+* `netuse` indicator variable denoting whether (1) or not (0) the child regularly sleeps under a bed-net
+* `treated` indicator variable denoting whether (1) or not (0) the bed-net is treated (coded 0 if `netuse` = 0)
+* `green` satellite-derived measure of the green-ness of vegetation in the immediate vicinity of the village (arbitrary units)
+* `phc` indicator variable denoting the presence (1) or absence (0) of a health center in the village
+
+The aim is to fit models predicting `pos`, the presence of malaria, using the other variables (exclusing the positions `x` and `y`).
+
+```{r}
+data(gambia)
+X <- as.matrix(gambia[, c(4:8)])
+X <- cbind(intercept = 1, X) # Add intercept column to design matrix
+Y <- gambia[, 3] # Response variable
+n <- length(Y)
+```
+
+The full model $\mathcal{M}$ is the logistic regression of response `pos` on the other variables including an intercept term but excluding the co-ordinates `x` and `y`.
+$$
+\log\left(\frac{q(x)}{1-q(x)}\right) = \eta
+$$
+
+$$
+\eta = \beta_0 + \beta_1 \cdot \texttt{age} + \beta_2 \cdot \texttt{netuse} + \beta_3 \cdot \texttt{treated} + \beta_4 \cdot \texttt{green} + \beta_5 \cdot \texttt{phc}
+$$
+
+Fitting a (frequentist) logisitic regression gives
+
+```{r}
+mle <- glm(Y ~ X - 1, family = "binomial") # Logistic regression using MLE
+b <- mle$coefficients
+summary(mle)
+```
+
+### Bayesian Logistic Regression
+
+Consider response $Y \in \{0, 1\}$ modelled as $Y \sim \text{Bern}(q)$ and covariates $x \in \mathbb{R}^p$ with
+
+$$
+\log\left(\frac{q(x)}{1-q(x)}\right) = \beta_0 + \beta^{T} x,
+$$
+where $\beta \in \mathbb{R}$ and $\beta \in \mathbb{R}^p$. Then
+
+$$
+q(x) = \frac{\exp \left(\beta_0 + \beta^{T} x\right)}{1+ \exp\left(\beta_0 + \beta^{T} x\right)}
+$$
+
+```{r}
+# Classify to 1 with probability
+q <- function(x, b) {
+  exp(b %*% x) / (1 + exp(b %*% x))
+}
+```
+
+Observe labelled data $\mathcal{D} = \{(x_1, y_1), \ldots, (x_n, y_n)\}$. The likelihood function is
+
+$$
+\mathcal{L}(\beta_{0}, \beta) = \prod_{i=1}^{n} q\left(x_i\right)^{y_i}\left(1-q(x_i)\right)^{1-y_i}
+$$
+Place Gaussian priors on $\beta$ and $\beta_0$ such that
+
+$$
+\beta_0 \sim \mathcal{N}(\mu_0, \sigma_0^2), \; \beta \sim \mathcal{N}_p(\mu, \text{diag}(\sigma_1^2, \ldots, \sigma_p^2))
+$$
+Then the posterior is proportional to
+
+$$
+p(\beta_0, \beta | y_1, \ldots, y_n) \propto \prod_{j=0}^p\exp\left(\frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2\right) \prod_{i=1}^{n} q\left(x_i\right)^{y_i}\left(1-q\left(x_i\right)\right)^{1-y_i}.
+$$
+Taking the logarithm gives
+
+$$
+\log p(\beta_0, \beta | y_1, \ldots, y_n) \propto \sum_{j=0}^p \frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2 +  \sum_{i=1}^{n} \{ {y_i}\log q\left(x_i\right) + (1 - y_i) \log \left(1-q\left(x_i\right)\right)\}.
+$$
+The log-likelihood can be rewritten as
+
+\begin{align*}
+\sum_{i=1}^{n} \{ {y_i}\log q\left(x_i\right) + (1 - y_i) \log \left(1-q\left(x_i\right)\right) \}
+&= \sum_{i=1}^{n} \{ {y_i}\log \left(\frac{q\left(x_i\right)}{1-q\left(x_i\right)}\right) + \log \left(1-q\left(x_i\right)\right) \} \\
+&= \sum_{i=1}^{n} \{ {y_i}\log \left(\frac{q\left(x_i\right)}{1-q\left(x_i\right)}\right) + \log \left(1-q\left(x_i\right)\right) \} \\
+&= \sum_{i=1}^{n} \{ {y_i}\left(\beta_0 + \beta^{T} x\right) - \log \left(1 + \exp(\beta_0 + \beta^{T} x)\right)\},
+\end{align*}
+
+so that the log-posterior is
+$$
+\log p(\beta_0, \beta | y_1, \ldots, y_n) \propto \sum_{j=0}^p \frac{1}{2\sigma_j^2}(\beta_j - \mu_j)^2 + \sum_{i=1}^{n} \{{y_i}\left(\beta_0 + \beta^{T} x\right) - \log \left(1 + \exp(\beta_0 + \beta^{T} x)\right)\}
+$$
+
+```{r}
+# (proportional to) log posterior in the indep normals prior case
+logpost <- function(b, X, mu, sigma) {
+  logprior <- sum((b - mu)^2 / 2*sigma)
+  nu <- apply(X, 1, function(x) b %*% x) # Vector of linear predictors
+  loglike <- sum(nu[Y == 1]) + sum(-log(1 + exp(nu)))
+  logprior + loglike
+}
+```
+
+Now, set independent normal priors with $\mu_0 = 0$, $\mu = 0$ and $\sigma_j = 0.1$ for all $j$, that is
+
+$$
+\beta_j \sim \mathcal{N}(0, 0.1), \; \forall j = 0, \ldots, 5
+$$
+
+Use Metropolis-within-Gibbs \@ref(mwg) to perform inference.
+
+```{r}
+# Function to update jth component of beta via RWMH step
+mh <- function(b, X, mu, sigma, j, scale) {
+  y <- b
+  y[j] <- y[j] + rnorm(1, mean = 0, sd = scale)
+  a <- exp(logpost(y, X, mu, sigma) - logpost(b, X, mu, sigma)) # Acceptance probability
+  if(a > runif(1)) return(y) else return(b)
+}
+
+# Metropolis-within-Gibbs sampler (random scan by default)
+mwg <- function(b0, X, mu, sigma, scale, nsim, random_scan = TRUE) {
+  p <- length(b0)
+  r <- array(NA, c(nsim, p)) # For the chain
+  r[1, ] <- b0 # Init chain
+  s <- array(0, c(3, p)) # For acceptance rates
+  for(i in 2:nsim) {
+    if(random_scan) {
+      j <- sample(1:p, 1) # Random scan
+    } else {
+      j <- (i %% p) + 1 # Systematic scan
+    }
+    s[1, j] <- s[1, j] + 1 # Update pick count
+    r[i, ] <- mh(r[i-1, ], X, mu, sigma, j, scale[j])
+    if(!identical(r[i, ], r[i-1, ])) s[2, j] <- s[2, j] + 1 # Update accept count
+  }
+  r <- as.data.frame(r)
+  names(r) <- sprintf("b%d", 0:(p-1))
+  s[3, ] <- s[2, ] / s[1, ] # Acceptance rates
+  return(list("chain" = r, "accept" = s))
+}
+```
+
+Use `my_guess` for scaling (found by manual adjustment)
+
+```{r}
+my_guess <- c(0.175, 0.00025, 0.2, 0.3, 0.005, 0.2)
+```
+
+Run
+
+```{r eval = FALSE}
+full <- mwg(rep(0, 6), X, mu, sigma, scale = my_guess, nsim = 10^5)
+```
+
+```{r echo = FALSE}
+full <- readRDS(file = "../output/full_model.Rds")
+```
+
+```{r warning=FALSE, message=FALSE}
+# Want to do pairs plots but having trouble rendering
+mcmc_trace(full$chain) # Traceplots
+mcmc_hist(full$chain) # Histograms
+full$accept
+colMeans(full$chain); b # Pretty close to the ML estimates, so the code is probably correct
+```
