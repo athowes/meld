@@ -1,31 +1,147 @@
-# Toy Example
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+# Toy Examples
 
-Submodel 1
+## Ex 1
 
+```{r echo=FALSE}
+pacman::p_load(tidyverse, RColorBrewer)
+#brewer.pal(10, "Paired")
+```
+
+Submodel 1, $\mathcal{M}_1$:
 $$
 \theta \sim \text{Beta}(a, b) \\
 Y_1 \sim \text{Bin}(m, \theta)
 $$
-Submodel 2
 
+Submodel 2, $\mathcal{M}_2$:
 $$
 \theta \sim \text{Beta}(c, d) \\
 Y_2 \sim \text{Geo}(\theta)
 $$
+
+* The true value of $\theta = 0.4$
+* Say that $m = 10$ is known to begin with
+* Observe data $\mathcal{D}_1 = \{y_1^i\}_{i = 1, \ldots, n_1}$ and $\mathcal{D}_2 = \{y_2^i\}_{i = 1, \ldots, n_2}$
+
 ```{r}
-n1 <- 10
-n2 <- 10
+set.seed(3)
 
-m <- 30
+theta <- 0.4
 
-a <- 5
-b <- 10
+n1 <- 5
+n2 <- 5
+
+m <- 10
+
+a <- 2
+b <- 2
 
 c <- 4
-d <- 6
-
-theta <- 0.55
+d <- 7
 
 y1 <- rbinom(n1, m, theta)
+tau1 <- sum(y1)
+y1
+
 y2 <- rgeom(n2, theta)
+tau2 <- sum(y2)
+y2
 ```
+
+Inference for $\mathcal{M}_1$ can be done exactly (conjuate prior):
+
+\begin{align*}
+p_1(\theta | \mathcal{D}_1) &\propto p_1(\mathcal{D}_1 | \theta) p_1(\theta) \\
+&= \prod_{i=1}^{n_1} {m\choose y_1^i} \theta^{y_1^i}  (1- \theta)^{m-{y_1^i}} \cdot 
+   \frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)} \theta^{a-1} (1- \theta)^{b-1} \\
+&\propto \theta^{\tau_1 + a - 1}  (1- \theta)^{n_1m-\tau_1 + b - 1} \\
+&\propto \text{Beta}(\tau_1 + a, n_1m-\tau_1 + b)
+\end{align*}
+
+where $\sum_{i=1}^{n_1} y_1^i = \tau_1$
+
+Inference for $\mathcal{M}_2$ can also be done exactly (conjuate prior):
+
+\begin{align*}
+p_2(\theta | \mathcal{D}_2) &\propto p_2(\mathcal{D}_2 | \theta) p_2(\theta) \\
+&= \prod_{i=1}^{n_2} (1-\theta)^{y_2^i} \theta \cdot 
+   \frac{\Gamma(c)\Gamma(d)}{\Gamma(c+d)} \theta^{c-1} (1- \theta)^{d-1} \\
+&\propto \theta^{n_2 + c - 1}  (1- \theta)^{\tau_2 + d - 1} \\
+&\propto \text{Beta}(n_2 + c, \tau_2 + d)
+\end{align*}
+
+where $\sum_{i=1}^{n_2} y_2^i = \tau_2$
+
+```{r echo=FALSE}
+plot1 <- ggplot(data = data.frame(x = c(0, 1)), aes(x)) +
+  stat_function(fun = dbeta, n = 100, 
+                args = list(shape1 = a, shape2 = b),
+                geom = "area", fill = "#A6CEE3", alpha = 0.6) +
+  stat_function(fun = dbeta, n = 100, 
+                args = list(shape1 = a + tau1, shape2 = b + n1*m - tau1),
+                geom = "area", fill = "#1F78B4", alpha = 0.6) +
+  geom_vline(xintercept = theta, colour="grey30", linetype = "longdash") +
+  ylim(c(0, 6.5)) +
+  labs(title = "Prior and Posterior for Submodel 1")
+
+
+plot2 <- ggplot(data = data.frame(x = c(0, 1)), aes(x)) +
+  stat_function(fun = dbeta, n = 100, 
+                args = list(shape1 = c, shape2 = d),
+                geom = "area", fill = "#B2DF8A", alpha = 0.6) +
+  stat_function(fun = dbeta, n = 100, 
+                args = list(shape1 = n2 + c, shape2 = tau2 + d),
+                geom = "area", fill = "#33A02C", alpha = 0.6) +
+  geom_vline(xintercept = theta, colour="grey30", linetype = "longdash") +
+  ylim(c(0, 6.5)) +
+  labs(title = "Prior and Posterior for Submodel 2")
+
+
+cowplot::plot_grid(plot1, plot2)
+
+# geom_vline(xintercept = theta, colour="grey30", linetype = "longdash") +
+```
+
+* Try to use Markov melding with Product of Experts pooling $p_\text{pool}(\theta) = \text{Beta}(a + b, c + d)$
+
+\begin{align*}
+p_{\text{meld}}(\theta | \mathcal{D}_1, \mathcal{D}_2) 
+&\propto p_{\text{pool}}(\theta) \prod_{m=1}^{M} \frac{p_m\left(\theta | \mathcal{D}_m\right)}{p_{m}(\theta)} \\
+&\propto p_1(\theta | \mathcal{D}_1)p_2(\theta | \mathcal{D}_2) \\
+&\propto \text{Beta}(\tau_1 + a + n_2 + c, n_1m-\tau_1 + b + \tau_2 + d)
+\end{align*}
+
+```{r echo=FALSE}
+ggplot(data = data.frame(x = c(0, 1)), aes(x)) +
+  stat_function(fun = dbeta, n = 100, 
+                args = list(shape1 = a + c, shape2 = b + d),
+                geom = "area", fill = "#FDBF6F", alpha = 0.6) +
+  stat_function(fun = dbeta, n = 100, 
+                args = list(shape1 = tau1 + a + n2 + c, shape2 = n1*m - tau1 + b + tau2 + d),
+                geom = "area", fill = "#FF7F00", alpha = 0.6) +
+    geom_vline(xintercept = theta, colour="grey30", linetype = "longdash") +
+    labs(title = "Pooled Prior and Posterior for Melded Model")
+```
+
+* In general, under PoE pooling
+
+\begin{align*}
+p_{\text{meld}}(\phi, \psi_1, \ldots, \psi_M | y_1, \cdots, y_M) 
+&\propto p_{\text{pool}}(\phi) \prod_{m=1}^{M} \frac{p_m\left(\phi, \psi_m, y_m\right)}{p_{m}(\phi)} \\
+&\propto \prod_{m=1}^{M} p_m\left(\phi, \psi_m, y_m\right) \\
+&\propto \prod_{m=1}^{M} p_m\left(\phi, \psi_m | y_m\right)
+\end{align*}
+
+## Ex 2
+
+Keep $\mathcal{M}_2$ the same but change $\mathcal{M}_1$ such that $m$ is no longer given
+$$
+\theta \sim \text{Beta}(a, b) \\
+m \sim \text{Pois}(\lambda) \\
+Y_1 \sim \text{Bin}(m, \theta)
+$$
