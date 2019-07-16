@@ -17,11 +17,15 @@ $$
 $$
 
 * Importance sampling is roughly as accurate as using an iid sample of size $ESS$ from $f(x)$
+
+## Markov Chain Monte Carlo
+
 * Markov Chain Monte Carlo (MCMC): generate a Markov chain whose stationary distribution is the target distribution $f$
+* ESS for MCMC: Murray suggest to look at @flegal2010batch
 
 For the following samplers targeting density $f$ and starting with $\mathbf{x}^{(0)} :=\left(x_{1}^{(0)}, \ldots, x_{p}^{(0)}\right)$, iterate for $t = 1, 2, \ldots$
 
-## Metropolis-Hastings Sampler
+### Metropolis-Hastings Sampler
 
 >
 1. Draw $\mathbf{x} \sim q\left(\cdot | \mathbf{x}^{(t-1)}\right)$
@@ -29,7 +33,7 @@ For the following samplers targeting density $f$ and starting with $\mathbf{x}^{
 
 Note that if the proposal $q$ is symmetric (as in random-walk metropolis-hastings) then the acceptance probability simplifies to $\min \left\{1, \frac{f(\mathbf{x})}{f\left(\mathbf{x}^{(t-1)}\right)}\right\}$.
 
-## Gibbs Sampler
+### Gibbs sampler
 
 Website reference: https://m-clark.github.io/docs/ld_mcmc/#gibbs_sampler
 
@@ -39,7 +43,7 @@ Random-scan Gibbs sampler, for $j = 1, \ldots, p$
 1. Draw $j \sim \text{Unif}\{1, \ldots, p\}$
 2. Draw $x_j^{(t)} \sim f_{x_j | \mathbf{x}_{-j}}\left(\cdot | x_{1}^{(t-1)}, \ldots, x_{j-1}^{(t-1)}, x_{j+1}^{(t-1)}, \ldots, x_{p}^{(t-1)}\right)$, and set $x_i^{(t)} :=x_i^{(t-1)}$ for all $i \neq j$
 
-Systematic-scan Gibbs sampler, for $j = 1, \ldots, p$
+### Systematic-scan Gibbs sampler, for $j = 1, \ldots, p$
 
 > 
 1. Draw $x_j^{(t)} \sim f_{x_j | \mathbf{x}_{-j}}\left(\cdot | x_{1}^{(t)}, \ldots, x_{j-1}^{(t)}, x_{j+1}^{(t-1)}, \ldots, x_{p}^{(t-1)}\right)$
@@ -48,7 +52,7 @@ Systematic-scan Gibbs sampler, for $j = 1, \ldots, p$
 * Advantage: often efficient when it is appropriate due to 100% accentance rate
 * Disadvantage: doesn't work well when there is high correlation between parameters
 
-## (Random scan) Metropolis-within-Gibbs {#mwg}
+### (Random scan) Metropolis-within-Gibbs {#mwg}
 
 Website reference: https://m-clark.github.io/docs/ld_mcmc/#metropolis-within-gibbs
 
@@ -59,7 +63,9 @@ Website reference: https://m-clark.github.io/docs/ld_mcmc/#metropolis-within-gib
 
 * The original MCMC algorithm, introduced in @metropolis1953equation, predating Gibbs sampling
 * Componentwise sampling usually ignores parameter correlation
-* Since MWG is a componentwise algorithm, it is most efficient when the acceptance rate of each parameter is 0.44 (rather than 0.234)
+* Since MWG is a componentwise algorithm, it is most efficient when the acceptance rate of each parameter is 0.44 (rather than 0.234) @neal2006optimal
+
+![Slide from Roberts (2011)](files/roberts.png)
 
 ## Example: Gambia Malaria Data
 
