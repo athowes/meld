@@ -74,8 +74,6 @@ accept_rate <- function(b, chains) {
   sum(rowSums(chains - lag) == 0) / nrow(chains)
 }
 
-# Scaling and Running -----------------------------------------------------
-
 test <- mwg(b, X, mu, sigma, scale = rep(0.1, 6), nsim = 10^4) # Initialising at roughly the right values
 mcmc_trace(test$chain)
 test$accept # Plan is to adjust scale based on optimal acceptance rate 0.234
@@ -180,8 +178,6 @@ mcmc_trace(model2$chain) # Traceplots
 mcmc_hist(model2$chain) # Histograms
 model2$accept
 colMeans(model2$chain); b2
-
-# Markov Combination ------------------------------------------------------
 
 logtarget <- function(b, s1, s2, X1, X2, mu1, mu2, sigma1, sigma2) {
   b1 <- b[s1]; b2 <- b[s2]
