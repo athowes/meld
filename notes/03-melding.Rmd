@@ -74,7 +74,7 @@ $$
 
 ### Metropolis-within-Gibbs
 
-Goudie cites @miiller1991generic for MWG.
+Goudie cites @muller1991generic for MWG.
 
 Sample from the full conditionals using Metropolis-Hastings. 
 
