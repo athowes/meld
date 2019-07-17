@@ -102,11 +102,12 @@ cowplot::plot_grid(plot1, plot2)
 # geom_vline(xintercept = theta, colour="grey30", linetype = "longdash") +
 ```
 
-* Try to use Markov melding with Product of Experts pooling $p_\text{pool}(\theta) = \text{Beta}(a + b, c + d)$
+* Use Markov melding with Product of Experts pooling $p_\text{pool}(\theta) = \text{Beta}(a + b, c + d)$
 
 \begin{align*}
 p_{\text{meld}}(\theta | \mathcal{D}_1, \mathcal{D}_2) 
-&\propto p_{\text{pool}}(\theta) \prod_{m=1}^{M} \frac{p_m\left(\theta | \mathcal{D}_m\right)}{p_{m}(\theta)} \\
+&\propto p_{\text{pool}}(\theta) \prod_{m=1}^{2} \frac{p_m\left(\theta | \mathcal{D}_m\right)}{p_{m}(\theta)} \\
+&\propto p_1(\theta)p_2(\theta) \prod_{m=1}^{2} \frac{p_m\left(\theta | \mathcal{D}_m\right)}{p_{m}(\theta)} \\
 &\propto p_1(\theta | \mathcal{D}_1)p_2(\theta | \mathcal{D}_2) \\
 &\propto \text{Beta}(\tau_1 + a + n_2 + c, n_1m-\tau_1 + b + \tau_2 + d)
 \end{align*}
@@ -120,10 +121,10 @@ ggplot(data = data.frame(x = c(0, 1)), aes(x)) +
                 args = list(shape1 = tau1 + a + n2 + c, shape2 = n1*m - tau1 + b + tau2 + d),
                 geom = "area", fill = "#FF7F00", alpha = 0.6) +
     geom_vline(xintercept = theta, colour="grey30", linetype = "longdash") +
-    labs(title = "Pooled Prior and Posterior for Melded Model")
+    labs(title = "Pooled Prior and Posterior for PoE Melded Model")
 ```
 
-* In general, under PoE pooling
+* In general, under PoE pooling, the melded posterior is proportional to the product of the submodel posteriors
 
 \begin{align*}
 p_{\text{meld}}(\phi, \psi_1, \ldots, \psi_M | y_1, \cdots, y_M) 
@@ -131,6 +132,90 @@ p_{\text{meld}}(\phi, \psi_1, \ldots, \psi_M | y_1, \cdots, y_M)
 &\propto \prod_{m=1}^{M} p_m\left(\phi, \psi_m, y_m\right) \\
 &\propto \prod_{m=1}^{M} p_m\left(\phi, \psi_m | y_m\right)
 \end{align*}
+
+![Does this make sense w.r.t. this slide from Goudie (2019)?](files/goudie_1.png)
+
+* Markov melding with linear opinion pooling $w_1 = w_2 = 0.5$ does not appear to have a closed form density
+
+$$
+\begin{align*}
+p_{\text{meld}}(\theta | \mathcal{D}_1, \mathcal{D}_2) 
+&\propto p_{\text{pool}}(\theta) \prod_{m=1}^{2} \frac{p_m\left(\theta | \mathcal{D}_m\right)}{p_{m}(\theta)} \\
+&\propto p_1(\theta | \mathcal{D}_1)p_2(\theta | \mathcal{D}_2)\left(\frac{p_1(\theta) + p_2(\theta)}{p_1(\theta)p_2(\theta)} \right)
+\end{align*}
+$$
+* Try Random walk Metropolis algorithm to target this density
+
+$$
+\begin{align*}
+\log p_{\text{meld}}(\theta | \mathcal{D}_1, \mathcal{D}_2) 
+&\propto \log p_1(\theta | \mathcal{D}_1) + \log p_2(\theta | \mathcal{D}_2) + \log (p_1(\theta) + p_2(\theta)) - \log p_1(\theta) - \log p_2(\theta)
+\end{align*}
+$$
+
+```{r}
+dlinbeta <- function(x, a, b, c, d) { # This is mainly for plotting ease
+  0.5* dbeta(x, a, b) + dbeta(x, c, d)
+}
+```
+
+```{r}
+logtarget <- function(x) {
+  if(0 < x & x < 1) {
+    return(log(dbeta(x, shape1 = tau1 + a + n2 + c, shape2 = n1*m - tau1 + b + tau2 + d)) + 
+           log(dbeta(x, a, b) + dbeta(x, c, d)) - log(dbeta(x, a, b)) - log(dbeta(x, c, d))
+    )
+  }
+    else return(-Inf)
+}
+
+rwm <- function(scale, nsim = 10000, x0 = 0.5) {
+  X <- c(x0, rep(0, (nsim - 1)))
+  U <- runif(nsim)
+  E <- rnorm(nsim, mean = 0, sd = scale)
+  count <- 0
+  for(i in 2:nsim) {
+    Y <- X[i-1] + E[i]
+    a <- exp(logtarget(Y) - logtarget(X[i-1]))
+    if(a > U[i]) {
+      X[i] <- Y
+      count <- count + 1
+    } 
+    else {
+      X[i] <- X[i-1]
+    }
+  }
+  return(list("chain" = X, 
+              "accept" = count/(nsim - 1),
+              "corr" = as.numeric(acf(X, plot = FALSE)[1][[1]])
+              )
+         )
+}
+
+run <- rwm(scale = 0.15)
+run$accept # Close to optimal for one-dimension (0.44)
+```
+
+```{r echo=FALSE}
+plot3 <- ggplot(data = data.frame(x = c(0, 1)), aes(x)) +
+  stat_function(fun = dlinbeta, n = 100, 
+                args = list(a, b, c, d),
+                geom = "area", fill = "#FDBF6F", alpha = 0.6) +
+  geom_vline(xintercept = theta, colour="grey30", linetype = "longdash") +
+  labs(title = "Linear Opinion Pool Prior")
+
+plot4 <- ggplot() + 
+  geom_histogram(aes(x = run$chain), bins = 50, fill = "#FF7F00", alpha = 0.6) +
+  geom_vline(xintercept = theta, colour="grey30", linetype = "longdash") +
+  xlim(c(0,1)) +
+  labs(title = "Linear Opinion Pool Posterior")
+
+cowplot::plot_grid(plot3, plot4)
+```
+
+* *To-do: put both these plots on the same axis, compare PoE with linear pooling*
+
+
 
 ## Ex 2
 
