@@ -1,0 +1,45 @@
+# Goudie examples
+
+## A/H1N1 influenze evidence synthesis
+
+* @presanis2014synthesising A/H1N1 pandemic: integrate information from ICUs with several other sources
+
+### Synthesising Evidence to Estimate Pandemic (2009) A/H1N1 Influenza Severity in 2009-2011
+
+#### Introduction
+
+* Bayesian evidence synthesis methods previously used to combine fragmented, under-associated and biased surveillance data coherently and consistently, ...
+* Two approaches
+    + Two-stage using posterior distributions from the model for the first two waves to inform priors for the third wave model
+    + One-stage modelling all three waves simultaneously
+* Evidence synthesis has become an important method in epidemiology, where multiple, disparate, incomplete and often biased sources of observational data are available
+* Severity definitions, probability infection...
+    + Results in death "case-fatality risk" (CFR)
+    + Results in hospitalisation "case-fatality risk" (CFR)
+    + Results in ICU admission "case-intensive care admission risk" (CIR)
+* Not all infections will be symptomatic - can prefix the above definitions by s (e.g. sCFR to denote probability of symptomatic infection resulting in death)
+* Estimation of these quantities requries estimates of both cumulative numbers of severe events (numerator) and cumulative numbers of infections (denominator). However, the denominator is challenging to determine, due to the unobserved infections
+* Population-wide serological testing (antibodies to influenza) to measure proportion of population infected is possible but unlikely to be feasible
+* Most feasible approach is to combine data from different sources, accounting for their biases such as under-ascertainment (does this mean under specified?)
+* Bayesian evidence synthesis provides a flexible framework in which all available relevant data may be coherently amalgamated together with prior information on biases, to estimate case-severity
+* Three waves of infection in England with the 2009 A/H1N1 influenza strain
+    + Summer 2009
+    + Autumn/Winter 2009-2010
+    + Autumn/Winter 2010-2011
+    
+#### Evidence Synthesis Methods
+
+* Evidence synthesis denotes the idea of estimating a set of $k$ basic parameters $\Theta = (\theta_1, \ldots, \theta_k)$ from a collection of $n$ independent data sources $\mathbf{y} = (y_1, \ldots, y_n)$ arrising from multiple studies, perhaps of differing design
+* Each source $y_i$ provides evidence on a "functional" parameter $\psi_i = f_i(\Theta)$ either directly or indirectly
+* Inference may be either carried out classically via maximum likelihood $p(\mathbf{y}|\Theta) = \prod_{i=1}^n p_i(y_i | \Theta)$ or in a Bayesian setting by obtaining the posterior $p(\Theta | \mathbf{y}) \propto p(\mathbf{y}|\Theta) p(\Theta)$ typically via a simulation based algorithm such as MCMC
+* Advocates Bayesian methodology, inference and model criticism cycle advocated by Box and O'Hagan
+
+#### A General Bayesian Model for Severity
+
+* Assume population of interest is divided into 7 age groups
+
+| Age | <1 |  1-4 | 5-14 | 15-24 | 25-44 | 45-64 | 65+ |
+|-----|:--:|:----:|:----:|:-----:|:-----:|:-----:|:---:|
+|     | 1  |  2   |  3   |   4   |   5   |   6   |  7  |
+
+
