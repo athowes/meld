@@ -3,21 +3,21 @@
 ## Ex 1
 
 ```{r echo=FALSE}
-pacman::p_load(tidyverse, RColorBrewer)
+pacman::p_load(tidyverse, RColorBrewer, bayesplot)
 #brewer.pal(10, "Paired")
 ```
 
 Submodel 1, $\mathcal{M}_1$:
-$$
-\theta \sim \text{Beta}(a, b) \\
-Y_1 \sim \text{Bin}(m, \theta)
-$$
+\begin{align*}
+\theta &\sim \text{Beta}(a, b) \\
+Y_1 &\sim \text{Bin}(m, \theta)
+\end{align*}
 
 Submodel 2, $\mathcal{M}_2$:
-$$
-\theta \sim \text{Beta}(c, d) \\
-Y_2 \sim \text{Geo}(\theta)
-$$
+\begin{align*}
+\theta &\sim \text{Beta}(c, d) \\
+Y_2 &\sim \text{Geo}(\theta)
+\end{align*}
 
 * The true value of $\theta = 0.4$
 * Say that $m = 10$ is known to begin with
@@ -135,23 +135,20 @@ p_{\text{meld}}(\phi, \psi_1, \ldots, \psi_M | y_1, \cdots, y_M)
 
 ![Does this make sense w.r.t. this slide from Goudie (2019)?](files/goudie_1.png)
 
-* Markov melding with linear opinion pooling $w_1 = w_2 = 0.5$ does not appear to have a closed form density
+* Markov melding with linear opinion pooling $w_1 = w_2 = 0.5$ does not appear to have a closed form density (mixture model)
 
-$$
 \begin{align*}
 p_{\text{meld}}(\theta | \mathcal{D}_1, \mathcal{D}_2) 
 &\propto p_{\text{pool}}(\theta) \prod_{m=1}^{2} \frac{p_m\left(\theta | \mathcal{D}_m\right)}{p_{m}(\theta)} \\
 &\propto p_1(\theta | \mathcal{D}_1)p_2(\theta | \mathcal{D}_2)\left(\frac{p_1(\theta) + p_2(\theta)}{p_1(\theta)p_2(\theta)} \right)
 \end{align*}
-$$
+
 * Try Random walk Metropolis algorithm to target this density
 
-$$
 \begin{align*}
 \log p_{\text{meld}}(\theta | \mathcal{D}_1, \mathcal{D}_2) 
 &\propto \log p_1(\theta | \mathcal{D}_1) + \log p_2(\theta | \mathcal{D}_2) + \log (p_1(\theta) + p_2(\theta)) - \log p_1(\theta) - \log p_2(\theta)
 \end{align*}
-$$
 
 ```{r}
 dlinbeta <- function(x, a, b, c, d) { # This is mainly for plotting ease
@@ -162,8 +159,10 @@ dlinbeta <- function(x, a, b, c, d) { # This is mainly for plotting ease
 ```{r}
 logtarget <- function(x) {
   if(0 < x & x < 1) {
-    return(log(dbeta(x, shape1 = tau1 + a + n2 + c, shape2 = n1*m - tau1 + b + tau2 + d)) + 
-           log(dbeta(x, a, b) + dbeta(x, c, d)) - log(dbeta(x, a, b)) - log(dbeta(x, c, d))
+    return(log(dbeta(x, shape1 = tau1 + a + n2 + c, 
+                        shape2 = n1*m - tau1 + b + tau2 + d)) + 
+           log(dbeta(x, a, b) + dbeta(x, c, d)) - 
+           log(dbeta(x, a, b)) - log(dbeta(x, c, d))
     )
   }
     else return(-Inf)
@@ -193,10 +192,11 @@ rwm <- function(scale, nsim = 10000, x0 = 0.5) {
 }
 
 run <- rwm(scale = 0.15)
+mcmc_trace(as.data.frame(run$chain)) # Traceplot
 run$accept # Close to optimal for one-dimension (0.44)
 ```
 
-```{r echo=FALSE}
+```{r echo=FALSE, warning=FALSE}
 plot3 <- ggplot(data = data.frame(x = c(0, 1)), aes(x)) +
   stat_function(fun = dlinbeta, n = 100, 
                 args = list(a, b, c, d),
@@ -205,7 +205,7 @@ plot3 <- ggplot(data = data.frame(x = c(0, 1)), aes(x)) +
   labs(title = "Linear Opinion Pool Prior")
 
 plot4 <- ggplot() + 
-  geom_histogram(aes(x = run$chain), bins = 50, fill = "#FF7F00", alpha = 0.6) +
+  geom_histogram(aes(x = run$chain), bins = 30, fill = "#FF7F00", alpha = 0.6) +
   geom_vline(xintercept = theta, colour="grey30", linetype = "longdash") +
   xlim(c(0,1)) +
   labs(title = "Linear Opinion Pool Posterior")
@@ -213,15 +213,33 @@ plot4 <- ggplot() +
 cowplot::plot_grid(plot3, plot4)
 ```
 
+```{r include=FALSE}
+points <- seq(0.01, 0.99, by = 0.01) # Code to check that the MCMC is right
+plot(exp(apply(as.data.frame(points), MARGIN = 1, FUN = logtarget))) 
+```
+
 * *To-do: put both these plots on the same axis, compare PoE with linear pooling*
-
-
 
 ## Ex 2
 
-Keep $\mathcal{M}_2$ the same but change $\mathcal{M}_1$ such that $m$ is no longer given
-$$
-\theta \sim \text{Beta}(a, b) \\
-m \sim \text{Pois}(\lambda) \\
-Y_1 \sim \text{Bin}(m, \theta)
-$$
+Keep $\mathcal{M}_2$ the same but change $\mathcal{M}_1$ such that $m$ is no longer given. Place a Poisson prior on $m$
+
+\begin{align*}
+\theta &\sim \text{Beta}(a, b) \\
+m &\sim \text{Pois}(\lambda) \\
+Y_1 &\sim \text{Bin}(m, \theta)
+\end{align*}
+
+* No longer conjugate (as far as I know)
+
+\begin{align*}
+p(\theta, m | \mathcal{D}_1) &\propto p_1(\mathcal{D}_1 | \theta, m) p_1(\theta) p_1(m) \\
+&\propto \prod_{i=1}^{n_1} {m\choose y_1^i} \theta^{y_1^i}  (1- \theta)^{m-{y_1^i}} \cdot 
+   \theta^{a-1} (1- \theta)^{b-1} \cdot
+   \frac{\lambda^m}{m!}
+\end{align*}
+
+\begin{align*}
+\log p(\theta, m | \mathcal{D}_1) \propto &\sum_{i=1}^{n_1} \left( \log {m\choose y_1^i} + y_1^i\log\theta + (m-{y_1^i}) \log (1- \theta) \right) + \\
+&(a-1) \log \theta + (b-1) \log (1- \theta) + m \log \lambda - \log m!
+\end{align*}
