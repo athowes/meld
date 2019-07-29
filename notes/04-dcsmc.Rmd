@@ -58,8 +58,8 @@ How to choose $q_n(x_n | x_{1:n-1})$? To minimise variance of $w_n(x_{1:n})$ cho
 * Approximate $\widehat{\pi}_n \left(x_{1:n}\right) \approx \overline{\pi}_n\left(x_{1:n}\right)=\sum_{i=1}^{N} \frac{N_n^i}{N} \delta_{X_{1:n}^i}\left(x_{1:n}\right)$ where $\mathbb{E}[N_n^i | W_n^{1:N}] = NW_n^i$ so that the resampled empirical measure is an unbiased approximation
 * Other (unbiased) resampling schemes have been proposed in the literature which have smaller variance in the number of offspring of each particle than by multinomial resampling, in descending order of popularity/efficiency
     + Systematic resampling: Sample $U_1 \sim \mathcal{U}[0, \frac{1}{N}]$ and define $U_i = U_1 + \frac{i-1}{N}$ for $i = 2, \ldots, N$, then set $N_n^i = \left|\left\{U_{j} : \sum_{k=1}^{i-1} W_{n}^{k} \leq U_{j} \leq \sum_{k=1}^{i} W_{n}^{k}\right\}\right|$ with the convention that $\sum_{k=1}^0 := 0$
-    + Residual resampling: (might look at later)
-    + Multinomial resampling: (already mentioned)
+    + Residual resampling
+    + Multinomial resampling (Murray suggests to stick to this)
 * "Intuitively, resampling can be seen to provide stability in the future at the cost of an increase in the immediate Monte Carlo variance"
 
 ### Sequential Monte Carlo
@@ -158,11 +158,6 @@ Simplest type of SMC algorithm, $\texttt{sir}(t)$ (slightly different presentati
 #### Interlude: @naesseth2014sequential
 
 * Via a sequential decomposition of the PGM we find a sequence of auxiliary distributions defined on a monotonically increasing sequence of probability spaces
-* *To-do*
-
-### SMC samplers and tempering
-
-*To-do*
 
 ### Methodology
 
@@ -179,4 +174,14 @@ Simplest type of SMC algorithm, $\texttt{sir}(t)$ (slightly different presentati
 * Similar to $\texttt{sir}$ but maintains multiple independent populations of weighted particles $\left(\left\{x_t^i, w_t^i\right\}_{i=1}^{N} : t \in T_k\right)$ which are propagated and merged as the algorithm progresses (here $T_k$ is the set of indicies of "active" target distributions at iteration $k$, $1 \leq k \leq \text{depth}(T)$)
 * Bottom-up approach to simulate from auxiliary target distributions by repeated resampling, proposal and weighting steps
 
+Algorithm $\texttt{dcsmc}$
 
+>
+1. For $c \in \mathcal{C}(t)$:
+    (a) $(\{x_c^i, w_c^i\}_{i=1}^N, \hat{Z}_c^N) \leftarrow \texttt{dcsmc}(c)$
+    (b) Resample $\{x_c^i, w_c^i\}_{i=1}^N$ to obtain the equally weighted particle system $\left\{\check{x}_c^i, 1\right\}_{i=1}^{N}$
+4. For particle $i = 1, \ldots, N$:
+    (a) If $\widetilde{\mathcal{X}}_t \neq \emptyset$, simulate $\widetilde{x}_t^i \sim q_t\left(\cdot | \check{x}_{c_1}^i, \ldots, \check{x}_{c_C}^i\right)$, where $(c_1, c_2, \ldots, c_C) = \mathcal{C}(t)$; else $\widetilde{x}_t^i \leftarrow \emptyset$
+    (b) Set $x_t^i = (\check{x}_{c_1}^i, \ldots, \check{x}_{c_C}^i, \widetilde{x}_t^i)$
+    (c) Compute $\frac{\gamma_{t}\left(x_t^i\right)}{\prod_{c \in \mathcal{C}(t)} \gamma_c\left(\check{x}_c^i\right)} \frac{1}{q_t\left(\widetilde{x}_t^i | \check{x}_{c_1}^i, \ldots, \check{x}_{c_C}^i\right)}$
+5. Compute $\hat{Z}_t^N = \{ \frac{1}{N} \sum_{i=1}^N w_t^i \} \prod_{c \in \mathcal{C}} \hat{Z}_c^N$
