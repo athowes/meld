@@ -36,10 +36,16 @@
 
 #### A General Bayesian Model for Severity
 
-* Assume population of interest is divided into 7 age groups
+* Assume population of interest is divided into 7 age groups indexed by $a \in \{1, \ldots, 7\}$
 
 | Age | <1 |  1-4 | 5-14 | 15-24 | 25-44 | 45-64 | 65+ |
 |-----|:--:|:----:|:----:|:-----:|:-----:|:-----:|:---:|
 |     | 1  |  2   |  3   |   4   |   5   |   6   |  7  |
 
+* Denote the age-specific population sizes by $N_{w, a}$ where $w$ indexes waves of infection ($w = 1, 2, 3$ in the case of England)
+* Infections at five increasing severity levels: all infections ($Inf$), symptomatic infections ($S$), hospitalisations ($H$), ICU admissions ($I$) and deaths ($D$). For each wave and age-group, consider each of these sets of infections to be subsets of the set of infections at a less severe level such that $D \subset H$ and $I \subset H \subset S \subset Inf$
+* For each age group $a$ denote the cumulative number of new infections during wave $w$ at severity level $l$ by $N_{w, a, l}$
 
+*Parameterisation*
+
+* $c_{w,a,l| \lambda}$ the age and wave specific conditional probability that a case is at severity level $l$ given the case has already reached a less severe level $\lambda$

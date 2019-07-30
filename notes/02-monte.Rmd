@@ -239,3 +239,6 @@ mcmc_hist(full$chain) # Histograms
 full$accept
 colMeans(full$chain); b # Pretty close to the ML estimates, so the code is probably correct
 ```
+
+### Using JAGS
+

@@ -157,25 +157,25 @@ dlinbeta <- function(x, a, b, c, d) { # This is mainly for plotting ease
 ```
 
 ```{r}
-logtarget <- function(x) {
-  if(0 < x & x < 1) {
-    return(log(dbeta(x, shape1 = tau1 + a + n2 + c, 
-                        shape2 = n1*m - tau1 + b + tau2 + d)) + 
-           log(dbeta(x, a, b) + dbeta(x, c, d)) - 
-           log(dbeta(x, a, b)) - log(dbeta(x, c, d))
+target_lpdf <- function(theta) {
+  if(0 < theta & theta < 1) {
+    return(log(dbeta(theta, shape1 = tau1 + a + n2 + c, 
+                            shape2 = n1*m - tau1 + b + tau2 + d)) + 
+           log(dbeta(theta, a, b) + dbeta(theta, c, d)) - 
+           log(dbeta(theta, a, b)) - log(dbeta(theta, c, d))
     )
   }
     else return(-Inf)
 }
 
-rwm <- function(scale, nsim = 10000, x0 = 0.5) {
-  X <- c(x0, rep(0, (nsim - 1)))
+rwm <- function(scale, nsim = 10000, init = 0.5) {
+  X <- c(init, rep(0, (nsim - 1)))
   U <- runif(nsim)
   E <- rnorm(nsim, mean = 0, sd = scale)
   count <- 0
   for(i in 2:nsim) {
     Y <- X[i-1] + E[i]
-    a <- exp(logtarget(Y) - logtarget(X[i-1]))
+    a <- exp(target_lpdf(Y) - target_lpdf(X[i-1]))
     if(a > U[i]) {
       X[i] <- Y
       count <- count + 1
@@ -197,28 +197,23 @@ run$accept # Close to optimal for one-dimension (0.44)
 ```
 
 ```{r echo=FALSE, warning=FALSE}
-plot3 <- ggplot(data = data.frame(x = c(0, 1)), aes(x)) +
-  stat_function(fun = dlinbeta, n = 100, 
+ggplot() +
+  geom_density(aes(x = run$chain), fill = "#FF7F00", color = NA, alpha = 0.6) +
+  stat_function(data = data.frame(x = c(0, 1)), aes(x),
+                fun = dlinbeta, n = 100, 
                 args = list(a, b, c, d),
                 geom = "area", fill = "#FDBF6F", alpha = 0.6) +
-  geom_vline(xintercept = theta, colour="grey30", linetype = "longdash") +
-  labs(title = "Linear Opinion Pool Prior")
-
-plot4 <- ggplot() + 
-  geom_histogram(aes(x = run$chain), bins = 30, fill = "#FF7F00", alpha = 0.6) +
-  geom_vline(xintercept = theta, colour="grey30", linetype = "longdash") +
-  xlim(c(0,1)) +
-  labs(title = "Linear Opinion Pool Posterior")
-
-cowplot::plot_grid(plot3, plot4)
+  geom_vline(xintercept = theta, colour= "grey30", linetype = "longdash") +
+  labs(x = "x", y = "y",
+       title = "Pooled Prior and Posterior for Linear Opinion Pool Melded Model")
 ```
 
 ```{r include=FALSE}
 points <- seq(0.01, 0.99, by = 0.01) # Code to check that the MCMC is right
-plot(exp(apply(as.data.frame(points), MARGIN = 1, FUN = logtarget))) 
+plot(exp(apply(as.data.frame(points), MARGIN = 1, FUN = target_lpdf))) 
 ```
 
-* *To-do: put both these plots on the same axis, compare PoE with linear pooling*
+* Looks quite similar visually to PoE for this example
 
 ## Ex 2
 
@@ -235,11 +230,32 @@ Y_1 &\sim \text{Bin}(m, \theta)
 \begin{align*}
 p(\theta, m | \mathcal{D}_1) &\propto p_1(\mathcal{D}_1 | \theta, m) p_1(\theta) p_1(m) \\
 &\propto \prod_{i=1}^{n_1} {m\choose y_1^i} \theta^{y_1^i}  (1- \theta)^{m-{y_1^i}} \cdot 
-   \theta^{a-1} (1- \theta)^{b-1} \cdot
-   \frac{\lambda^m}{m!}
+   \theta^{a-1} (1- \theta)^{b-1} \cdot \frac{\lambda^m}{m!}
 \end{align*}
+
+* Full conditionals are
+
+\begin{align*}
+p(\theta | m, \mathcal{D}_1) &\propto \theta^{\tau_1 + a - 1}  (1- \theta)^{n_1m-\tau_1 + b - 1} \\
+                             &\propto \text{Beta}(\tau_1 + a, n_1m-\tau_1 + b)
+\end{align*}
+
+$$
+\begin{align*}
+p(m | \theta, \mathcal{D}_1) &\propto \prod_{i=1}^{n_1} {m\choose y_1^i} (1-\theta)^m \cdot \frac{\lambda^m}{m!}\\
+                             &\propto \frac{{m!}^{n_1 - 1}}{\prod_{i=1}^{n_1} (m - y_1^i)!} (1 - \theta)^{n_1m} \lambda^m
+\end{align*}
+$$
+
+* Logarithm of the posterior is
 
 \begin{align*}
 \log p(\theta, m | \mathcal{D}_1) \propto &\sum_{i=1}^{n_1} \left( \log {m\choose y_1^i} + y_1^i\log\theta + (m-{y_1^i}) \log (1- \theta) \right) + \\
 &(a-1) \log \theta + (b-1) \log (1- \theta) + m \log \lambda - \log m!
 \end{align*}
+
+```{r}
+target_lpdf <- function(theta, m) {
+  # to-do  
+}
+```
