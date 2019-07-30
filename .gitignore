@@ -2,7 +2,4 @@
 .Rhistory
 .RData
 .Ruserdata
-.html
-.json
-notes/_book/
-notes/_bookdown_files/
+thesis/
