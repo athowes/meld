@@ -106,4 +106,21 @@ p_{\text {meld,}l}\left(\phi, \psi_{1}, \ldots, \psi_{\ell} | y_{1}, \ldots, y_{
 $$
 **Stage 1.** obtain samples $\left(\phi^{(h, 1)}, \psi_{1}^{(h, 1)}\right)$ for $h=1, \ldots, H_{1}$ from $p_{\text {meld,}1}\left(\phi, \psi_{1} | y_{1}\right)$ (by MCMC typically)
 
-**Stage $l$.** construct a Metropolis-within-Gibbs sampler for $\left(\phi, \psi_1, \ldots, \psi_\ell\right)$ given the data $\left(y_1, \ldots, y_\ell\right)$. The parameter $\phi_\ell$ is updated, conditional on the link parameter $\phi$ and parameters $\phi_1, \ldots, \phi_{\ell-1}$ using a Metropolis-Hastings step (say). The samples from stage $\ell-1$ are used as a proposal to update $\phi_1, \ldots, \phi_{\ell-1}$ and the link parameter $\phi$
+**Stage $l$.** construct a Metropolis-within-Gibbs sampler for $\left(\phi, \psi_1, \ldots, \psi_\ell\right)$ given the data $\left(y_1, \ldots, y_\ell\right)$. The parameter $\phi_\ell$ is updated, conditional on the link parameter $\phi$ and parameters $\phi_1, \ldots, \phi_{\ell-1}$ using a Metropolis-Hastings step (say) with target-to-proposal density ratio
+
+$$
+R\left(\phi, \psi_{1}, \ldots, \psi_{\ell}^{\star}, \phi, \psi_{1}, \ldots, \psi_{\ell}\right) = p_{\ell}\left(\phi, \psi_{\ell}^{\star}, y_{\ell}\right) \times \frac{1}{q\left(\psi_{\ell}^{\star} | \phi, \psi_{\ell}\right)}
+$$
+
+
+The samples from stage $\ell-1$ are used as a proposal to update $\phi_1, \ldots, \phi_{\ell-1}$ and the link parameter $\phi$. The amounts to sampling with replacement, i.e. drawing an index $d \sim \mathcal{U}(\{1, \ldots, H_{\ell - 1}\})$ and setting $\left(\phi^{\star}, \psi_{1}^{\star}, \ldots, \psi_{\ell-1}^{\star}\right)=\left(\phi^{(d, \ell-1)}, \psi_{1}^{(d, \ell-1)}, \ldots, \psi_{\ell-1}^{(d, \ell-1)}\right)$
+
+$$
+R\left(\phi, \psi_{1}^\star, \ldots, \psi_{\ell-1}^\star, \psi_{\ell}, \phi, \psi_{1}, \ldots, \psi_{\ell-1}, \psi_{\ell}\right) = \frac{p_{\ell}\left(\phi^{\star}, \psi_{\ell}, y_{\ell}\right)}{p_{\ell}\left(\phi^{\star}\right)} p_{\text{pool}, \ell}\left(\phi^{\star}\right)
+$$
+Once sampling in stage $\ell$ has converged, the samples $\left(\phi^{(h, \ell)}, \psi_{1}^{(h, \ell)}, \ldots, \psi_{\ell}^{(h, \ell)}\right), h=1, \ldots, H_{\ell}$ are obtained for use in stage $\ell + 1$
+
+### Estimating marginal distributions
+
+* $p_m(\phi)$ might be directly-specified as a founder node in the submodel's DAG
+* Else, estimate by KDE with samples drawn from $p_m(\phi)=\iint p_m\left(\phi, \psi_m, Y_m\right) d \psi_m d Y_m$
