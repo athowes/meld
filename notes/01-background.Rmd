@@ -187,3 +187,8 @@ $$
 Chapter 14 of @bishop2006pattern
 
 This chapter is mainly in reference to combining models for prediction (classification and regression) e.g. Bayesian model averaging, committees, boosting. Perhaps there are some connections here which can be made?
+
+### Distributed Data Monte Carlo
+
+* @dai2019monte targets $f(x) \propto f_{1}(x) \cdots f_{C}(x)$ where each of $f_{c}(x)$ is proportional to a density representing one of the $C$ distributed inferences to be unified
+* @scott2016bayes introduces Consensus Monte Carlo
