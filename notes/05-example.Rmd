@@ -98,11 +98,9 @@ plot2 <- ggplot(data = data.frame(x = c(0, 1)), aes(x)) +
 
 
 cowplot::plot_grid(plot1, plot2)
-
-# geom_vline(xintercept = theta, colour="grey30", linetype = "longdash") +
 ```
 
-* Use Markov melding with Product of Experts pooling $p_\text{pool}(\theta) = \text{Beta}(a + b, c + d)$
+* Use Markov melding with Product of Experts pooling $p_\text{pool}(\theta) = \text{Beta}(a + c, b + d)$
 
 \begin{align*}
 p_{\text{meld}}(\theta | \mathcal{D}_1, \mathcal{D}_2) 

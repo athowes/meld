@@ -90,23 +90,26 @@ $$
 
 and for the link parameter update
 $$
-R\left(\phi, \psi_{1}, \ldots, \psi_{m}^{\star}, \ldots, \psi_{M}, \phi, \psi_{1}, \ldots, \psi_{M}\right) = p_{\mathrm{pool}}\left(\phi^{\star}\right) \prod_{m=1}^{M} \frac{p_{m}\left(\phi^{\star}, \psi_{m}, y_{m}\right)}{p_{m}\left(\phi^{\star}\right)} \times \frac{1}{q\left(\phi^{\star} | \phi\right)}
+R\left(\phi, \psi_{1}, \ldots, \psi_{M}, \phi^\star, \psi_{1}, \ldots, \psi_{M}\right) = p_{\mathrm{pool}}\left(\phi^{\star}\right) \prod_{m=1}^{M} \frac{p_{m}\left(\phi^{\star}, \psi_{m}, y_{m}\right)}{p_{m}\left(\phi^{\star}\right)} \times \frac{1}{q\left(\phi^{\star} | \phi\right)}
 $$
 
 ### Multi-stage Metropolis-within-Gibbs
 
 Factorise the pooled prior (can be done in many ways)
-$$
+\begin{equation}
 p_{\text{pool}}(\phi) = \prod_{m=1}^{M} p_{\text{pool,}m}(\phi)
-$$
+\end{equation}
 
 Define $l$th stage posterior as
 $$
-p_{\text {meld,}l}\left(\phi, \psi_{1}, \ldots, \psi_{\ell} | y_{1}, \ldots, y_{\ell}\right) \propto \prod_{m=1}^{\ell}\left(\frac{p_{m}\left(\phi, \psi_{m}, y_{m}\right)}{p_{m}(\phi)} p_{\mathrm{pool}, m}(\phi)\right)
+p_{\text {meld,}l}(\phi, \psi_{1}, \ldots, \psi_{\ell} | y_{1}, \ldots, y_{\ell}\right) \propto \prod_{m=1}^{\ell}(\frac{p_{m}(\phi, \psi_{m}, y_{m}\right)}{p_{m}(\phi)} p_{\mathrm{pool}, m}(\phi)\right)
 $$
+
+
+
 **Stage 1.** obtain samples $\left(\phi^{(h, 1)}, \psi_{1}^{(h, 1)}\right)$ for $h=1, \ldots, H_{1}$ from $p_{\text {meld,}1}\left(\phi, \psi_{1} | y_{1}\right)$ (by MCMC typically)
 
-**Stage $l$.** construct a Metropolis-within-Gibbs sampler for $\left(\phi, \psi_1, \ldots, \psi_\ell\right)$ given the data $\left(y_1, \ldots, y_\ell\right)$. The parameter $\phi_\ell$ is updated, conditional on the link parameter $\phi$ and parameters $\phi_1, \ldots, \phi_{\ell-1}$ using a Metropolis-Hastings step (say) with target-to-proposal density ratio
+**Stage $l$.** construct a Metropolis-within-Gibbs sampler for $\left(\phi, \psi_1, \ldots, \psi_\ell\right)$ given the data $\left(y_1, \ldots, y_\ell\right)$. The parameter $\psi_\ell$ is updated, conditional on the link parameter $\phi$ and parameters $\psi_1, \ldots, \psi_{\ell-1}$ using a Metropolis-Hastings step (say) with target-to-proposal density ratio
 
 $$
 R\left(\phi, \psi_{1}, \ldots, \psi_{\ell}^{\star}, \phi, \psi_{1}, \ldots, \psi_{\ell}\right) = p_{\ell}\left(\phi, \psi_{\ell}^{\star}, y_{\ell}\right) \times \frac{1}{q\left(\psi_{\ell}^{\star} | \phi, \psi_{\ell}\right)}

@@ -37,7 +37,7 @@ Note that if the proposal $q$ is symmetric (as in random-walk metropolis-hasting
 
 Website reference: https://m-clark.github.io/docs/ld_mcmc/#gibbs_sampler
 
-Random-scan Gibbs sampler, for $j = 1, \ldots, p$
+Random-scan Gibbs sampler
 
 > 
 1. Draw $j \sim \text{Unif}\{1, \ldots, p\}$
@@ -157,8 +157,7 @@ The log-likelihood can be rewritten as
 \begin{align*}
 \sum_{i=1}^{n} \{ {y_i}\log q\left(x_i\right) + (1 - y_i) \log \left(1-q\left(x_i\right)\right) \}
 &= \sum_{i=1}^{n} \{ {y_i}\log \left(\frac{q\left(x_i\right)}{1-q\left(x_i\right)}\right) + \log \left(1-q\left(x_i\right)\right) \} \\
-&= \sum_{i=1}^{n} \{ {y_i}\log \left(\frac{q\left(x_i\right)}{1-q\left(x_i\right)}\right) + \log \left(1-q\left(x_i\right)\right) \} \\
-&= \sum_{i=1}^{n} \{ {y_i}\left(\beta_0 + \beta^{T} x\right) - \log \left(1 + \exp(\beta_0 + \beta^{T} x)\right)\},
+&= \sum_{i=1}^{n} \{ {y_i}\left(\beta_0 + \beta^{T} x_i\right) - \log \left(1 + \exp(\beta_0 + \beta^{T} x_i)\right)\},
 \end{align*}
 
 so that the log-posterior is
@@ -239,6 +238,4 @@ mcmc_hist(full$chain) # Histograms
 full$accept
 colMeans(full$chain); b # Pretty close to the ML estimates, so the code is probably correct
 ```
-
-### Using JAGS
 

@@ -1,8 +1,8 @@
 # Background
 
-## Combining Expert Opinion
+## Combining expert opinion
 
-### Multiple Experts
+### Multiple experts
 
 Notes from Chapter 9 of @o2006uncertain
 
