@@ -1,0 +1,49 @@
+--- 
+output: 
+  bookdown::pdf_book:
+    keep_tex: yes
+    template: null
+    includes:
+      in_header: tex/preamble.tex
+      before_body: tex/doc_preface.tex
+documentclass: book
+fontsize: 11pt
+bibliography: [citations.bib]
+link-citations: yes
+geometry: "left=2.8cm, right=2.8cm, top=3.5cm, bottom=3.5cm"
+---
+
+```{r include=FALSE}
+options(scipen=999)
+
+pacman::p_load(tidyverse, tikzDevice, kableExtra, knitr, reshape, mcmcse)
+
+lightgrey <- "#D3D3D3"
+lightgold <- "#E69F00"
+
+lightblue <- "#56B4E9"
+lightgreen <- "#009E73"
+lightpink <- "#CC79A7"
+
+midblue <- "#3D9BD0"
+midgreen <- "#00855A"
+midpink <- "#B3608E"
+  
+darkblue <- "#004E83"
+darkgreen <- "#00380D"
+darkpink <- "#802D5B"
+```
+
+# Abstract {-}
+
+Markov melding is a Bayesian generic approach to combining evidence from multiple sources.
+Each evidence source is modelled by separate submodels, which are then joined by a process called melding.
+This process, its motivations and inference on the resulting melded model are the primary topics of study in this dissertation.
+We discuss one simple example of melding, as well as one more involved example involving the use of computational techniques to perform inference.
+
+# Acknowledgements {-}
+
+I would like to thank Dr Murray Pollock, for his continued support and guidance throughout this project. Thanks also go to Dr Robert Goudie for very kindly providing access to the code and data for the paper @goudie2019joining.
+
+This dissertation was typeset using `bookdown` [@bookdown], plots produced using `ggplot2` [@ggplot2] and written in `R` [@r]. 
+The associated code can be found at the GitHub repo `github.com/athowes/meld`.

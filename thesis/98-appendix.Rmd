@@ -1,0 +1,115 @@
+# (APPENDIX) Appendix {-}
+
+# Appendix \label{app:A}
+
+## Submodel 1
+
+```{r echo=FALSE, warning=FALSE}
+run <- readRDS("../output/mcmc_smith.Rds")
+truth <- readRDS("../output/truth_smith.Rds")
+
+nsim <- dim(run$chain)[1]
+thinfactor <- 10000
+thin <- run$chain[thinfactor*1:(nsim / thinfactor), ]
+
+trace_hist <- function(num, latex, mycol = darkblue) {
+  p1 <- ggplot(thin, aes_string(y = paste0("V", num), x = 1:(nsim/thinfactor))) +
+    geom_line(alpha = 0.8, col = "grey") +
+    labs(x = "Iterations", y = latex) +
+    scale_x_continuous(breaks = c(0, (nsim/(2*thinfactor)), (nsim/thinfactor)), labels = c(0, (nsim/2), nsim)) +
+    theme(panel.background = element_blank(),
+          axis.line = element_line(colour = "grey"),
+          plot.margin = unit(c(5.5, 7, 5.5, 5.5), "points"))
+  
+  p2 <- ggplot(run$chain, aes_string(x = paste0("V", num))) +
+    geom_histogram(alpha = 0.7, bins = 30, fill = lightgrey, col = mycol) +
+    labs(x = latex, y = "Count") +
+    geom_vline(xintercept = truth[num], colour = "black", linetype = "longdash") +
+    theme(panel.background = element_blank(),
+          axis.line = element_line(colour = "grey"))
+  return(cowplot::plot_grid(p1, p2, ncol = 2))
+}
+```
+
+```{r dev = "tikz", echo=FALSE, warning=FALSE, fig.height = 3.5, fig.cap=paste("Submodel 1 posterior traceplots and histograms for $p_1^C$ and $p_1^T$")}
+p1 <- trace_hist(3, "$p_1^C$")
+p2 <- trace_hist(8, "$p_1^T$")
+
+cowplot::plot_grid(p1, p2, ncol = 1)
+```
+
+```{r dev = "tikz", echo=FALSE, warning=FALSE, fig.height = 3.5, fig.cap=paste("Submodel 1 posterior traceplots and histograms for $p_2^C$ and $p_2^T$")}
+p1 <- trace_hist(4, "$p_2^C$")
+p2 <- trace_hist(9, "$p_2^T$")
+
+cowplot::plot_grid(p1, p2, ncol = 1)
+```
+
+```{r dev = "tikz", echo=FALSE, warning=FALSE, fig.height = 3.5, fig.cap=paste("Submodel 1 posterior traceplots and histograms for $p_3^C$ and $p_3^T$")}
+p1 <- trace_hist(5, "$p_3^C$")
+p2 <- trace_hist(10, "$p_3^T$")
+
+cowplot::plot_grid(p1, p2, ncol = 1)
+```
+
+```{r dev = "tikz", echo=FALSE, warning=FALSE, fig.height = 3.5, fig.cap=paste("Submodel 1 posterior traceplots and histograms for $p_4^C$ and $p_4^T$")}
+p1 <- trace_hist(6, "$p_4^C$")
+p2 <- trace_hist(11, "$p_4^T$")
+
+cowplot::plot_grid(p1, p2, ncol = 1)
+```
+
+```{r dev = "tikz", echo=FALSE, warning=FALSE, fig.height = 3.5, fig.cap=paste("Submodel 1 posterior traceplots and histograms for $p_5^C$ and $p_5^T$")}
+p1 <- trace_hist(7, "$p_5^C$")
+p2 <- trace_hist(12, "$p_5^T$")
+
+cowplot::plot_grid(p1, p2, ncol = 1)
+```
+
+\newpage
+
+## Melded model
+
+```{r echo=FALSE, warning=FALSE}
+run <- readRDS("../output/mcmc_meld.Rds")
+truth <- readRDS("../output/truth_meld.Rds")
+
+nsim <- dim(run$chain)[1]
+thinfactor <- 10000
+thin <- run$chain[thinfactor*1:(nsim / thinfactor), ]
+```
+
+```{r dev = "tikz", echo=FALSE, warning=FALSE, fig.height = 3.5, fig.cap=paste("Melded model posterior traceplots and histograms for $p_1^C$ and $p_1^T$")}
+p1 <- trace_hist(3, "$p_1^C$", mycol = darkpink)
+p2 <- trace_hist(8, "$p_1^T$", mycol = darkpink)
+
+cowplot::plot_grid(p1, p2, ncol = 1)
+```
+
+```{r dev = "tikz", echo=FALSE, warning=FALSE, fig.height = 3.5, fig.cap=paste("Melded model posterior traceplots and histograms for $p_2^C$ and $p_2^T$")}
+p1 <- trace_hist(4, "$p_2^C$", mycol = darkpink)
+p2 <- trace_hist(9, "$p_2^T$", mycol = darkpink)
+
+cowplot::plot_grid(p1, p2, ncol = 1)
+```
+
+```{r dev = "tikz", echo=FALSE, warning=FALSE, fig.height = 3.5, fig.cap=paste("Melded model posterior traceplots and histograms for $p_3^C$ and $p_3^T$")}
+p1 <- trace_hist(5, "$p_3^C$", mycol = darkpink)
+p2 <- trace_hist(10, "$p_3^T$", mycol = darkpink)
+
+cowplot::plot_grid(p1, p2, ncol = 1)
+```
+
+```{r dev = "tikz", echo=FALSE, warning=FALSE, fig.height = 3.5, fig.cap=paste("Melded model posterior traceplots and histograms for $p_4^C$ and $p_4^T$")}
+p1 <- trace_hist(6, "$p_4^C$", mycol = darkpink)
+p2 <- trace_hist(11, "$p_4^T$", mycol = darkpink)
+
+cowplot::plot_grid(p1, p2, ncol = 1)
+```
+
+```{r dev = "tikz", echo=FALSE, warning=FALSE, fig.height = 3.5, fig.cap=paste("Melded model posterior traceplots and histograms for $p_5^C$ and $p_5^T$")}
+p1 <- trace_hist(7, "$p_5^C$", mycol = darkpink)
+p2 <- trace_hist(12, "$p_5^T$", mycol = darkpink)
+
+cowplot::plot_grid(p1, p2, ncol = 1)
+```

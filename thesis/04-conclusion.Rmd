@@ -1,0 +1,13 @@
+# Conclusion \label{chapter:conc}
+
+* **Study selection** Throughout this dissertation, as well as @goudie2019joining, it is assumed that the set of studies to be synthesised is prespecified. 
+In reality this is often not the case. The order of inclusion is important
+
+* **Model misspecification**
+
+* **Scalability**
+Multi-stage Metropolis-within-Gibbs operates sequentially: each stage $\ell$ can only be completed after the previous stage $\ell - 1$ has been.
+To put it another way, the computational flow is indexed by the chain $\{1, \ldots, M\}$ as in Figure \ref{fig:compflow}.
+An alternative, proposed by @lindsten2017divide in a broader SMC context, is to instead utilise divide-and-conquer by operating on a tree $\mathcal{T}$.
+Particularly for joining many submodels, this may result in significant computational gains as the resulting algorithm would be more easily parallelisable.
+

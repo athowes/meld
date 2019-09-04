@@ -1,0 +1,35 @@
+# Introduction
+
+It is rare that societally relevant questions can be addressed entirely by a single study [@royal].
+Well-founded policy and informed public discourse therefore depend upon taking into account all available evidence evenhandedly.
+More and more, this evidence is in terms of data; with vast amounts now becoming available in all sectors of society.
+The sources of this data are varied and diverse, making it challenging to analyse simultaneously.
+As a result, there is a need for statistical methodology able to synthesise disparate evidence across multiple sources.
+
+Using all available data has a range of benefits.
+From a statistical point of view evidence synthesis is typically associated with more precise estimates, just as with an increase in sample size.
+Any single given study or model typically harbors biases.
+Integrating multiple models may help to mitigate the effect of bias in any particular model.
+Furthermore, taking into account multiple sources of evidence gives a fuller and more realistic unstanding of the uncertainty involved.
+
+Evidence synthesis is particularly relevant when the required quantity is difficult to measure directly, or otherwise a challenge to obtain complete, reliable, unbiased information about.
+There are many situations in which it is impossible to carry out a randomised controlled trial or other highly informative study and only partial data sources are available.
+For instance in the monitoring of pandemics, only fragmented, biased surveillance data is available [@presanis2014synthesising].
+Effective public health response depends on up-to-date severity information.
+Evidence synthesis provides a feasible solution using only the available data. 
+
+Meta-analysis, also known as systematic review, is one quantitative approach to combining evidence from multiple studies.
+Classically, it has been frequentist in nature and typically focused on combining sources of evidence which are in some sense alike, such as multiple studies of the same kind.
+
+Multiparameter Evidence Synthesis (MPES) [@welton2012evidence] provides a more general approach, set within a Bayesian framework.
+The only requirement of MPES is that each study is informative about a shared parameter.
+Bayesian statistics provides a flexible and  systematic approach to combining prior knowledge with data from multiple, potentially disparate, sources. 
+The Bayesian paradigm also allows uncertainty to be quantified and propagated through the models such that information is shared between models.
+
+Computational tools such as Markov chain Monte Carlo (MCMC) [@gilks1995markov] facilitate fitting complex Bayesian models.
+Using MCMC, @ades2002markov demonstrate the application of MPES to HIV data in the context of prenatal screening policy. MPES is now the key method [@hickman2013multiple] used by the UK government to estimate HIV prevalence; accomplished using "a collection of census, surveillance and survey-type prevalence data" [@phe].
+
+Markov melding [@goudie2019joining] is a recent approach to MPES which introduces a generic framework for combining modular evidence sources. 
+In Chapter \ref{chapter:model} we explain the route taken by @goudie2019joining to constructing a joint model over all of the considered sources of evidence.
+In Chapter \ref{chapter:comp} we discuss computational methods for conducting inference on this model.
+Finally, we conclude in Chapter \ref{chapter:conc}.
