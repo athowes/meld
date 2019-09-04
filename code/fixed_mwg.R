@@ -84,3 +84,10 @@ ESS/minESS # About 2.5x the required effective samples
 saveRDS(c(sC, sT), "../output/data_fixed.Rds") # Save data
 saveRDS(c(sim_kappa, sim_lambda), "../output/truth_fixed.Rds") # Ground truth
 saveRDS(run, "../output/mcmc_fixed.Rds") # MCMC output
+
+kappa_mean <- function(run) {
+  colMeans(run$chain)[1]
+}
+
+fixed_means <- replicate(100, kappa_mean(mwg(x0, vscale, nsim = 1000000)))
+saveRDS(fixed_means, "../output/fixed_means.Rds")

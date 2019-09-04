@@ -100,3 +100,10 @@ ESS/minESS # About 1.5x the required effective samples
 saveRDS(c(rC, rT), "../output/data_smith.Rds") # Save data
 saveRDS(c(sim_kappa, sim_upsilon, pC, pT), "../output/truth_smith.Rds") # Ground truth
 saveRDS(run, "../output/mcmc_smith.Rds") # MCMC output
+
+kappa_mean <- function(run) {
+  colMeans(run$chain)[1]
+}
+
+smith_means <- replicate(100, kappa_mean(mwg(x0, vscale, nsim = 5000000)))
+saveRDS(smith_means, "../output/smith_means.Rds")
