@@ -27,8 +27,8 @@ mu0 <- 0
 tau0 <- 0.25
 
 # Priors form Submodel 2
-kappa02 <- -0.25 # Likewise with the 2 index
-upsilon02 <- 1
+kappa02 <- -0.1 # Likewise with the 2 index
+upsilon02 <- 0.5
 lambda0 <- 0
 gamma0 <- 0.25
 
@@ -125,7 +125,6 @@ ESS <- multiESS(run$chain)
 
 truth <- readRDS("../output/truth_smith.Rds") # Import ground truth from Submodel 1
 saveRDS(c(truth, -1), "../output/truth_meld.Rds") # Append GT from S2 and save
-
 saveRDS(run, "../output/mcmc_meld.Rds") # MCMC output
 
 kappa_mean <- function(run) {
