@@ -353,7 +353,8 @@ In the following example, we demonstrate the use of MCMC for Markov melding two 
 \label{fig:ex2dag1}
 \end{figure}
 
-**Submodel 1** Standard meta-analysis usually assumes that either effects are common across studies (fixed-effects) or drawn from a probability distribution (random-effects). @smith1995bayesian present a fully Bayesian approach to random-effects meta-analysis. They use this model to study the effectiveness of a treatment (selective decontamination of the digestive tract) which aims to prevent patients acquiring infections whilst in intensive care units (ICUs). We present an adapted version of the model as follows.
+**Submodel 1** 
+Standard meta-analysis usually assumes that either effects are common across studies (fixed-effects) or drawn from a probability distribution (random-effects). @smith1995bayesian present a fully Bayesian approach to random-effects meta-analysis. They use this model to study the effectiveness of a treatment (selective decontamination of the digestive tract) which aims to prevent patients acquiring infections whilst in intensive care units (ICUs). We present an adapted version of the model as follows.
 
 Consider $n_1 = 5$ trials $i = 1, \ldots, n_1$ each with both a control ($C$) and treatment ($T$) group of size $N_1 = 10$.
 In trial $i$, individuals within group $j \in \{C, T\}$ are assumed to have independent probability $p_i^j$ of developing an infection. 
@@ -745,9 +746,14 @@ where indeed Equation \eqref{eq:Mthstage} holds.
 To sample from this sequence of auxiliary distributions, @goudie2019joining generalise a previous two-stage computational approach of @lunn2013fully.
 With the introduction of each additional parameter, the relevant Markov chains may be initialised as before at the corresponding elements of $(\phi^{(0)}, \psi_1^{(0)}, \ldots, \psi_M^{(0)})$.
 
-**Stage 1.** For the first stage, the auxiliary target distribution is the 1\textsuperscript{st} stage posterior $p_{\text {meld,}1}(\phi, \psi_{1} \, | \, y_{1})$. Samples $(\phi^{(h, 1)}, \psi_1^{(h, 1)})$ for $h=1, \ldots, H_1$ from this distribution can typically be drawn using standard MCMC methods such as MWG. If $p_{\text{pool,}1}(\phi) = p_1(\phi)$ then the first stage posterior corresponds to the standard posterior $p_m(\phi, \psi_m \, | \, y_m)$. This may present computational advantages as often a given submodel may have been fit and samples will be already available. This factor may motivate setting the first submodel to be the most computational intensive submodel for which samples are available.
+**Stage 1.** 
+For the first stage, the auxiliary target distribution is the 1\textsuperscript{st} stage posterior $p_{\text {meld,}1}(\phi, \psi_{1} \, | \, y_{1})$. Samples $(\phi^{(h, 1)}, \psi_1^{(h, 1)})$ for $h=1, \ldots, H_1$ from this distribution can typically be drawn using standard MCMC methods such as MWG. 
+If $p_{\text{pool,}1}(\phi) = p_1(\phi)$ then the first stage posterior corresponds to the standard posterior $p_m(\phi, \psi_m \, | \, y_m)$. 
+This may present computational advantages as often a given submodel may have been fit and samples will be already available. This factor may motivate setting the first submodel to be the most computational intensive submodel for which samples are available.
 
-**Stage $\ell$.** Following stage $\ell-1$, samples $(\theta^{(h, \ell-1)})$ for $h = 1, \ldots, H_{\ell-1}$ from the $(\ell-1)$\textsuperscript{th} stage posterior $p_{\text {meld,}\ell-1}(\theta_{\ell-1} \, | \, y_{1}, \ldots, y_{\ell-1})$ are available. In stage $\ell$ a Metropolis-within-Gibbs sampler targeting $p_{\text{meld,}l}(\theta_{\ell-1}, \psi_\ell \, | \, y_1, \ldots, y_\ell)$ on the space $\Theta_\ell = \Theta_{\ell - 1} \times \Psi_\ell$ is constructed. 
+**Stage $\ell$.** 
+Following stage $\ell-1$, samples $(\theta^{(h, \ell-1)})$ for $h = 1, \ldots, H_{\ell-1}$ from the $(\ell-1)$\textsuperscript{th} stage posterior $p_{\text {meld,}\ell-1}(\theta_{\ell-1} \, | \, y_{1}, \ldots, y_{\ell-1})$ are available. 
+In stage $\ell$ a Metropolis-within-Gibbs sampler targeting $p_{\text{meld,}l}(\theta_{\ell-1}, \psi_\ell \, | \, y_1, \ldots, y_\ell)$ on the space $\Theta_\ell = \Theta_{\ell - 1} \times \Psi_\ell$ is constructed. 
 
 Keeping $\theta_{\ell - 1}$ fixed, the parameter $\psi_m$ is updated as usual using a Metropolis-Hastings step. 
 This chain can be initialsed at $\psi_m^{(0)}$. 

@@ -297,7 +297,7 @@ p_{\mathrm{comb}}(\psi_m, Y_m \, | \, \phi) &= \frac{p_{\mathrm{comb}}(\phi, \ps
 In its form, the Markov melded joint model is similar to that of Markov combination.
 This is because both methods assume the conditional independence assumption, given by Equation \eqref{eq:cindep}.
 The primary difference is that Markov melding does not assume that the prior marginals of the link parameter are consistent.
-Instead, these marginals are ``melded'' by a process similar to that developed in Bayesian melding, which we will now detail.
+Instead, these marginals are "melded" by a process similar to that developed in Bayesian melding, which we will now detail.
 
 ## Bayesian melding \label{sec:bayesianmelding}
 
@@ -370,7 +370,7 @@ The primary alternative to mathematical aggregation is behavioural aggregation, 
 In the case of Markov melding, in general the practitioners who originally developed each of the submodels may not be willing and able to justify their choices as would be required in behavioural aggregation.
 
 Just as it is important that the submodels in Markov melding have a shared concept of the link parameter, @clemen1999combining caution that "the mathematical and behavioural approaches ... assume that the experts have ironed out differences in definitions and that they agree on exactly what is to be forecast or assessed'';
-also noting that ``practising risk analysts know these are strong assumptions".
+also noting that "practising risk analysts know these are strong assumptions".
 
 In order to outline some of the proposed [@o2006uncertain] approaches, suppose each of a group of $n$ experts are independently asked their beliefs about an unknown quantity $\theta$, resulting in elicited distributions $f_i(\theta), i = 1, \ldots, n$. 
 The simplest and most widely used technique within mathematical aggregation is opinion pooling, where a consensus distribution $f(\theta)$ is obtained as some function of the individual distributions $\{f_1(\theta), \ldots, f_n(\theta)\}$.
@@ -475,7 +475,7 @@ Logarithmic pooling is slightly more doubtful of the experts but still produces 
 Row (a, b, c) of Figure \eqref{fig:pooling} prompt another consideration: to what extend should expert agreement lead to higher confidence.
 To use an analogy, suppose you and a group of friends want to decide whether or not to eat at a certain restaurant. 
 If each friend expresses a positive opinion about the restaurant then may seem reasonable to be more confident than any given friend about the restaurant.
-However, if each friend bases their opinion solely on a positive review of the restaurant in that week's paper then this effectively would be double counting; in reality there is only one ``expert'' - the journalist.
+However, if each friend bases their opinion solely on a positive review of the restaurant in that week's paper then this effectively would be double counting; in reality there is only one "expert" - the journalist.
 
 ## Markov melding
 
@@ -565,7 +565,8 @@ We present the following pedagogical example of Markov melding with $M = 2$ subm
 
 Consider the following two submodels, illustrated as DAGs in Figure \ref{fig:ex1dag}.
 
-**Submodel 1** Define the first submodel $p_1(\theta, Y_1)$ as
+**Submodel 1** 
+Define the first submodel $p_1(\theta, Y_1)$ as
 \begin{align}
 \theta &\sim \text{Beta}(a, b), \label{eq:prior1} \\
 Y_1^i &\sim \text{Bin}(m, \theta), \quad i = 1, \ldots, n_1,
@@ -585,7 +586,8 @@ p_1(\theta \, | \, y_1) &\propto p_1(y_1 \, | \, \theta) p_1(\theta)
 \end{align}
 where $\sum_{i=1}^{n_1} y_1^i = \tau_1$.
 
-**Submodel 2** The second submodel $p_2(\theta, Y_2)$ is such that
+**Submodel 2** 
+The second submodel $p_2(\theta, Y_2)$ is such that
 \begin{align}
 \theta &\sim \text{Beta}(c, d) \label{eq:prior2} \\
 Y_2 &\sim \text{Geo}(\theta), \quad i = 1, \ldots, n_2,

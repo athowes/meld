@@ -11,24 +11,6 @@ truth <- readRDS("../output/truth_smith.Rds")
 nsim <- dim(run$chain)[1]
 thinfactor <- 10000
 thin <- run$chain[thinfactor*1:(nsim / thinfactor), ]
-
-trace_hist <- function(num, latex, mycol = darkblue) {
-  p1 <- ggplot(thin, aes_string(y = paste0("V", num), x = 1:(nsim/thinfactor))) +
-    geom_line(alpha = 0.8, col = "grey") +
-    labs(x = "Iterations", y = latex) +
-    scale_x_continuous(breaks = c(0, (nsim/(2*thinfactor)), (nsim/thinfactor)), labels = c(0, (nsim/2), nsim)) +
-    theme(panel.background = element_blank(),
-          axis.line = element_line(colour = "grey"),
-          plot.margin = unit(c(5.5, 7, 5.5, 5.5), "points"))
-  
-  p2 <- ggplot(run$chain, aes_string(x = paste0("V", num))) +
-    geom_histogram(alpha = 0.7, bins = 30, fill = lightgrey, col = mycol) +
-    labs(x = latex, y = "Count") +
-    geom_vline(xintercept = truth[num], colour = "black", linetype = "longdash") +
-    theme(panel.background = element_blank(),
-          axis.line = element_line(colour = "grey"))
-  return(cowplot::plot_grid(p1, p2, ncol = 2))
-}
 ```
 
 ```{r dev = "tikz", echo=FALSE, warning=FALSE, fig.height = 3.5, fig.cap=paste("Submodel 1 posterior traceplots and histograms for $p_1^C$ and $p_1^T$")}

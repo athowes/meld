@@ -1,6 +1,6 @@
 # Conclusion \label{chapter:conc}
 
-* **Study selection** Throughout this dissertation, as well as @goudie2019joining, it is assumed that the set of studies to be synthesised is prespecified. 
+* **Study selection** Throughout this dissertation, as well as @goudie2019joining, it is assumed that the set of studies to be synthesised, and the statistical models used for each study, are prespecified.
 In reality this is often not the case. The order of inclusion is important
 
 * **Model misspecification**
