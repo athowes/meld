@@ -1,8 +1,10 @@
+library(mcmcse)
+
 set.seed(1) # For reproducibility
 
 # Prior on kappa
-kappa0 <- -0.25
-upsilon0 <- 1
+kappa0 <- -0.1
+upsilon0 <- 0.5
 
 # Prior on lambda
 lambda0 <- 0
@@ -70,17 +72,14 @@ mwg <- function(x0, vscale, nsim, random_scan = TRUE) {
   return(list("chain" = r, "accept" = s))
 }
 
-x0 <-c(0, 0) # Init
+x0 <-c(-0.1, 0) # Init at a-priori means
+vscale <- c(0.55, 0.3) # Tuning to 0.44 (Neal and Roberts 2006)
 
-# Tuning to 0.44 (Neal and Roberts 2006)
-vscale <- c(0.55, 0.3)
+run <- mwg(x0, vscale, nsim = 1000000) # First run
 
 minESS <- minESS(p = 2, eps = .025, alpha = .025) # (Vats, Felgal and Jones 2015)
-
-run <- mwg(x0, vscale, nsim = 500000)
-
 ESS <- multiESS(run$chain)
-ESS/minESS # About 1.5x the required effective samples
+ESS/minESS # About 2.5x the required effective samples
 
 saveRDS(c(sC, sT), "../output/data_fixed.Rds") # Save data
 saveRDS(c(sim_kappa, sim_lambda), "../output/truth_fixed.Rds") # Ground truth

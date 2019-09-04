@@ -1,4 +1,4 @@
-library("mcmcse")
+library(mcmcse)
 
 set.seed(1) # For reproducibility
 
@@ -91,10 +91,9 @@ pC_scale <- c(0.3, 0.25, 0.3, 0.25, 0.2)
 pT_scale <- c(0.15, 0.15, 0.25, 0.3, 0.2)
 vscale <- c(3, 3.5, pC_scale, pT_scale)
 
-minESS <- minESS(p = 12, eps = .025, alpha = .025) # (Vats, Felgal and Jones 2015)
-
 run <- mwg(x0, vscale, nsim = 5000000)
 
+minESS <- minESS(p = 12, eps = .025, alpha = .025) # (Vats, Felgal and Jones 2015)
 ESS <- multiESS(run$chain)
 ESS/minESS # About 1.5x the required effective samples
 
