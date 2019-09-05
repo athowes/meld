@@ -1,7 +1,7 @@
 # Model specification \label{chapter:model}
 
 Markov melding is a Bayesian procedure based on the construction and integration of a collection of graphical models; one for each of the separate evidence components.
-we begin this chapter by introducing Bayesian statistics in Section \ref{sec:bayes} and outlining how models might be constructed using a Bayesian networks, a type of graphical model, in Section \ref{sec:graph}.
+We begin this chapter by introducing Bayesian statistics in Section \ref{sec:bayes} and outlining how models might be constructed using a Bayesian networks, a type of graphical model, in Section \ref{sec:graph}.
 
 ## Bayesian statistics \label{sec:bayes}
 
@@ -57,7 +57,7 @@ This property is called conjugacy and allows exact Bayesian inference to be perf
 
 Having observed the data $\{1, 1, 2, 4, 1, 4\}$, Figure \eqref{fig:bayes} shows the posterior distribution contracting as beliefs about the rate parameter become stronger. \hfill $\square$
 
-```{r dev = "tikz", echo=FALSE, fig.height = 3, fig.cap=paste("Particular example of Bayesian inference for the Poisson-Gamma model. The prior hyperparameters are $a = 3$ and $b = 1$. Data, plotted as open circles, is simulated from a Poisson distribution with $\\lambda = 2$ shown as the dashed line. \\label{fig:bayes}")}
+```{r dev = "tikz", echo=FALSE, fig.height = 3.5, fig.cap=paste("Particular example of Bayesian inference for the Poisson-Gamma model. The prior hyperparameters are $a = 3$ and $b = 1$. Data, plotted as open circles, is simulated from a Poisson distribution with $\\lambda = 2$ shown as the dashed line. \\label{fig:bayes}")}
 
 x <- c(1, 1, 2, 4, 1, 4) # Simulated from lambda 2
 y <- c(0, 0.05, 0, 0, 0.1, 0.05)
@@ -156,58 +156,57 @@ Then, Equation \eqref{eq:dag1} may be rewritten as
 \begin{equation}
 p(Z_1, \ldots, Z_K) = p(Z_1)p(Z_2)p(Z_3)p(Z_4 \, | \, Z_1, Z_2, Z_3),  \label{eq:dag2}
 \end{equation}
-and the corresponding DAG redrawn taking into account this structure (part (b) of Figure \ref{fig:dag1}).
+and the corresponding DAG redrawn taking into account this structure as shown in part (b) of Figure \ref{fig:dag1}.
 
-It is visually clear that conditional independence statements result in sparser graphs, thereby reducing model complexity.
+It is visually clear to see that conditional independence statements result in sparser graphs with less interactions, thereby reducing model complexity.
 More generally, given a set of conditional independence statements, joint probability distributions may be rewritten as
 \begin{equation}
 p(Z_1, \ldots, Z_K) = \prod_{k=1}^K p(Z_k \, | \, \text{pa}(Z_k)),
 \end{equation}
-where $Z_k$ is only conditionally dependent only on its parents $\text{pa}(Z_k)$.
+where $Z_k$ is only conditionally dependent only on the set of nodes $\text{pa}(Z_k)$, called its parents.
 In the corresponding DAG, there is a directed edge from each $Z_l \in \text{pa}(Z_k)$ to $Z_k$.
 For example, in Figure \ref{fig:dag1}, $\text{pa}(Z_4) = \{Z_1, Z_2, Z_3\}$.
 
 Bayesian networks allow complex models $p(Z_1, \ldots, Z_k)$ to be built up from the simpler building blocks of $p(Z_k \, | \, \text{pa}(Z_k))$. 
-In the context of Bayesian statistics, supposing the prior parameter is multivariate $\theta = (\theta_1, \ldots, \theta_K)$ then the prior distribution may be decomposed according to $\prod_{k=1}^K p(\theta_k \, | \, \text{pa}(\theta_k))$. 
-The statistical model $p(\theta, Y)$ may then be written as a product of the prior with the likelihood $p(Y \, | \, \text{pa}(Y))$.
-Bayesian models which are built up in stages this way are known as hierarchical models.
-
 These models possess the flexibility required to model the varied data sources necessary for evidence synthesis.
 Furthermore, domain experts can often efficaciously express their beliefs via Bayesian networks due to their ease of interpretability.
 
-## Modular models
+In the context of Bayesian statistics, supposing the prior parameter is multivariate $\theta = (\theta_1, \ldots, \theta_K)$ then the statistical model $p(\theta, Y)$ may then be written as a product of the prior $\prod_{k=1}^K p(\theta_k \, | \, \text{pa}(\theta_k))$ with the likelihood $p(Y \, | \, \text{pa}(Y))$.
+Bayesian models which are built up in stages this way are known as hierarchical models.
 
-Having introduced the necessary prerequisites, we may now discuss how they might be used to synthesise evidence.
+Having introduced the necessary prerequisites, we may now discuss how they might be used to synthesise evidence by combining modular models.
+
+## Modular models
 
 Consider multiple sources of observable data $Y_m \in \mathcal{Y}_m$ with $m = 1, \ldots M$. 
 Each $Y_m$ is, at least to some extent, directly informative about a shared parameter $\phi$ which is common to all of the models.
 Therefore, for each evidence source, define a statistical model $p_m(\phi, \psi_m, Y_m)$, which will be henceforth called a submodel.
 For each submodel the parameters are $(\phi, \psi_m)$: the link parameter $\phi \in \Phi$ together with model specific parameters  $\psi_m \in \Psi_m$ unique to each submodel.
 
-It is essential that each of the submodels agree conceptually on what the link parameter $\phi$ represents: conversations in which the participants do not agree on the basic tenants are rarely productive.
-It is worth mentioning this fact because in some models the interpretation of parameters can be subtle.
-For example, in a regression the regression coefficient of a covariate implicitly takes into account the inclusion and exclusion of all other potential covariates; thereby making it a different parameter in different models and rarely an appropriate link parameter.
-It is therefore safest if $\phi$ has a clear interpretation linked to the real world.
-
 Given the collection of submodels $p_m(\phi, \psi_m, Y_m)$, the aim of the joining operation in Markov melding [@goudie2019joining] is to produce a joint distribution $p(\phi, \psi_1, \ldots, \psi_M, Y_1, \ldots, Y_M)$ over all parameters and observable data.
 Synthesising a joint distribution is attractive as it facilitates the propagation of uncertainty between the submodels.
 Additionally, the joint distribution defines a statistical model to which general methodological tools can be applied.
-Higher quality inference about $\phi$ is typically the primary aim of evidence synthesis, although due to the sharing of information between the submodels it may be that inference for $\psi_m$ $m = 1, \ldots, M$ is also improved.
+Higher quality inference about $\phi$ is typically the primary aim of evidence synthesis, although due to the sharing of information between the submodels another benefit may be that inference for $\psi_m$ $m = 1, \ldots, M$ is also improved.
+
+It is essential that each of the submodels agree conceptually on what the link parameter $\phi$ represents: conversations in which the participants do not agree on the basic tenants are rarely productive.
+It is worth mentioning this fact because in some models the interpretation of parameters can be subtle.
+For example, in a regression the regression coefficient of a covariate implicitly takes into account the inclusion and exclusion of all other potential covariates; thereby making it a different parameter in different models and rarely an appropriate link parameter.
+It is therefore safest if $\phi$ is clearly interpretable, with a conceptual link to the real world.
 
 The joining of submodels is best suited to situations where the model specific observed quantities $Y_m$ are relatively distinct. 
 The more unique information there is dispersed across the different submodels, the greater the potential benefits of evidence synthesis.
-On the other extreme, the observed data $Y_m = Y$ may be identical for each of the $M$ submodels (with different likelihood components say).
+On the other extreme, the observed data $Y_m = Y$ could be identical for each of the $M$ submodels (with different likelihood components say).
 This is in some sense unappealing as each of the submodels then offers a competing explanation for the data generating mechanism.
 Such a collection of beliefs cannot be reasonably held confidently by a single individual simultaneously.
 Rather, the individual may have to assign prior probabilities to each of the models being true.
-Then, if the link parameter plays different roles in the different submodels, although Markov melding may be possible it might not be advisable.
+Then, if the link parameter plays different roles in the different conflicting submodels, although Markov melding may be possible it might not be advisable.
 In machine learning, multiple models may be trained on the same data and aggregated for the purposes of prediction [@bishop2006pattern].
 However, in this setting the focus is not on model building, interpretation or uncertainty quantification.
 
 Markov melding extends and unifies previous work, particularly Markov combination [@dawid1993hyper] and Bayesian melding [@poole2000inference] which we review here. 
 In particular, Markov combination considers joining submodels where an added simplifying assumption is made; whilst Bayesian melding provides the methodological inspiration for overcoming this assumption.
 
-## Markov combination
+## Markov combination \label{sec:combination}
 
 As above consider the collection of submodels $p_m(\phi, \psi_m, Y_m)$, $m = 1, \ldots, M$.
 Each submodel features a prior distribution on the link parameter $\phi$ which in the simplest case is specified directly with $p_m(\phi, \psi_m, Y_m) = p_m(\psi_m, Y_m \, | \, \phi)p_m(\phi)$ such that $\text{pa}(\phi) = \emptyset$. 
@@ -240,11 +239,11 @@ To be exact
 where conditional independence is defined as in Equation \eqref{eq:cindepdef}.
 Figure \eqref{fig:cindepdag} illustrates this assumption using a DAG for $M = 2$ submodels.
 
-In some sense, the truth of this assumption justifies the use of seperate submodels, rather than a single monolithic model which is specified at the outset.
-Just as with DAGs, conditional independence statements simplify the process of modelling: it is easier to specify a collection of submodels than it is to additionally consider their interactions.
-This is particularly pertinent if the observable data $Y_m$ are from different background areas.
-Here, the modelling process naturally decomposes such that different domain experts are consultated for each data source, resuling in submodel specifications.
+In some sense, the truth of this assumption justifies the use of separate submodels, rather than a single monolithic model which is specified at the outset.
+Just as with DAGs, this conditional independence statement simplifies the process of modelling: it is easier to specify a collection of submodels than it is to additionally consider their interactions.
+This is particularly pertinent if the observable data $Y_m$ are from different background areas such that the modelling process naturally decomposes via consultation of different domain experts for each data source who specify the submodels.
 In this situation, the conditional independence assumption also seems, in general, quite reasonable.
+In general, it is worth noting that conditional independence statements are hard to test [@shah2018hardness] and therefore often their validitity will rest on more informal "common sense" arguements.
 
 \begin{figure}
 \centering
@@ -271,7 +270,7 @@ In this situation, the conditional independence assumption also seems, in genera
 \label{fig:cindepdag}
 \end{figure}
 
-The structure of Equation \eqref{eq:comb} is then explained by applying these two assumptions to a hypothetical joint model
+The structure of Equation \eqref{eq:comb} is then explained by applying these two assumptions - conditional indepedence and prior consistency - to a hypothetical joint model
 \begin{align}
 p(\phi, \psi_1, \ldots, \psi_M, Y_1, \ldots, Y_M)
 &\stackrel{\phantom{\eqref{eq:cindep}}}{=} p(\phi) \, p(\psi_1, \ldots, \psi_M, Y_1, \ldots, Y_M \, | \, \phi) \nonumber \\
@@ -344,7 +343,7 @@ A simple approach to rectifying this problem would be not to attempt to place a 
 However, in hopes of combining both information from the premodel prior and that of the model induced prior, Bayesian melding instead replaces $p(\phi)$ and $p^\star(\phi)$ by a single melded output prior $\tilde p(\phi)$.
 For their particular motivating application, relating to a population dynamics model for bowhead whales, @poole2000inference do this by taking the (normalised) geometric mean of the two priors as follows
 \begin{equation}
-\tilde p(\phi) \propto p(\phi)^{0.5}p^\star(\phi)^{0.5} \label{eq:geometric}
+\tilde p(\phi) \propto p(\phi)^{0.5}p^\star(\phi)^{0.5} \label{eq:geometric}.
 \end{equation}
 Equation \eqref{eq:geometric} is an example of a broader class of pooling operations which mathematically combine probability distributions.
 More examples will be discussed further in the next section.
@@ -477,6 +476,9 @@ To use an analogy, suppose you and a group of friends want to decide whether or 
 If each friend expresses a positive opinion about the restaurant then may seem reasonable to be more confident than any given friend about the restaurant.
 However, if each friend bases their opinion solely on a positive review of the restaurant in that week's paper then this effectively would be double counting; in reality there is only one "expert" - the journalist.
 
+In Section \ref{sec:combination} we detailed the approach of Markov combination, which requires prior consistency.
+By using ideas from Bayesian melding to overcome inconsistent priors, in the following section we will show that Markov melding naturally extends Markov combination.
+
 ## Markov melding
 
 If the marginals are inconsistent, that is condition \eqref{eq:consistent} fails to hold, then the approach of Markov combination requires some modification.
@@ -501,10 +503,9 @@ p_{\text{repl,m}}(\phi, \psi_m, Y_m) = p_m(\psi_m, Y_m \, | \, \phi)p_\text{pool
 \end{equation}
 After marginal replacement has occurred it is possible to apply Markov combination to the collection of replacement submodels $\{p_{\text{repl,m}}\}_{m = 1,\ldots,M}$ since they have consistent marginals, such that
 \begin{align}
-p_{\mathrm{comb}}(\phi, \psi_1, \ldots, \psi_M, Y_1, \ldots, Y_M) 
-&= \frac{\prod_{m=1}^{M} p_{\text{repl,m}}(\phi, \psi_m, Y_m)}{p_\text{pool}(\phi)^{M-1}} \nonumber \\
-&= \frac{\prod_{m=1}^{M} p_m(\psi_m, Y_m \, | \, \phi)p_\text{pool}(\phi)}{p_\text{pool}(\phi)^{M-1}} \nonumber \\
-&= p_\text{pool}(\phi) \prod_{m=1}^{M} p_m(\psi_m, Y_m \, | \, \phi) \nonumber \\
+&\phantom{=} p_{\mathrm{comb}}(\phi, \psi_1, \ldots, \psi_M, Y_1, \ldots, Y_M) = \frac{\prod_{m=1}^{M} p_{\text{repl,m}}(\phi, \psi_m, Y_m)}{p_\text{pool}(\phi)^{M-1}} \nonumber \\
+&= \frac{\prod_{m=1}^{M} p_m(\psi_m, Y_m \, | \, \phi)p_\text{pool}(\phi)}{p_\text{pool}(\phi)^{M-1}} 
+= p_\text{pool}(\phi) \prod_{m=1}^{M} p_m(\psi_m, Y_m \, | \, \phi) \nonumber \\
 &= p_\text{pool}(\phi) \prod_{m=1}^{M} \frac{p_m(\psi_m, Y_m, \phi)}{p_m(\phi)}.
 \end{align}
 The result is equal to that of the Markov melded joint model, Equation \eqref{eq:meld}.
@@ -516,7 +517,7 @@ p_{\text{meld}}(\phi, \psi_1, \ldots, \psi_M \, | \, y_1, \ldots, y_M) \propto p
 \end{align}
 which is called the Markov melded posterior.
 
-We present the following pedagogical example of Markov melding with $M = 2$ submodels which, as with Example 3.1, uses conjugacy to enable exact Bayesian computation.
+We present the following pedagogical example of Markov melding with $M = 2$ submodels which, as with Example 2.1, uses conjugacy to enable exact Bayesian computation.
 
 *Example 2.2: Binomial and Geometric submodels with conjugate Beta priors*
 
@@ -559,7 +560,7 @@ We present the following pedagogical example of Markov melding with $M = 2$ subm
     \draw (6.5,-3) -- (9.5,-3) -- (9.5,-5) -- (6.5,-5) -- cycle;
     
 \end{tikzpicture}
-\caption{Further to the notation introduced in Section \ref{sec:graph}, constants may be included in DAGs with square boxes, whereas random variables have circular boxes. Rectangular boxes (sometimes called plates) are drawn around sections of the diagram which are repeated across the indices indicated.}
+\caption{DAGs representing submodels one and two. Further to the notation introduced in Section \ref{sec:graph}, constants may be included in DAGs with square boxes, whereas random variables have circular boxes. Rectangular boxes (sometimes called plates) are drawn around sections of the diagram which are repeated across the indices indicated.}
 \label{fig:ex1dag}
 \end{figure}
 
@@ -573,10 +574,10 @@ Y_1^i &\sim \text{Bin}(m, \theta), \quad i = 1, \ldots, n_1,
 \end{align}
 where $a = 2$, $b = 3$ and $m = 10$ are known and $Y_1 = (Y_1^1, \ldots, Y_1^{n_1})$.
 
-Suppose the true value of $\theta = 0.4$. 
-We simulate observed data $Y_1 = y_1$ and of size $n_1 = 3$ from this submodel, resulting in $y_1 = \{3, 5, 4\}$.
+Suppose the true value of the parameter $\theta$ is 0.4. 
+We simulate observed data $Y_1 = y_1$ of size $n_1 = 3$ from this submodel, resulting in $y_1 = \{3, 5, 4\}$.
 Conditioning on the observed data, inference can be done exactly as the prior is conjugate.
-The posterior distribution is given by
+The posterior distribution is then given by
 \begin{align}
 p_1(\theta \, | \, y_1) &\propto p_1(y_1 \, | \, \theta) p_1(\theta) 
 = \prod_{i=1}^{n_1} {m\choose y_1^i} \theta^{y_1^i}  (1- \theta)^{m-{y_1^i}} \cdot 
@@ -585,8 +586,10 @@ p_1(\theta \, | \, y_1) &\propto p_1(y_1 \, | \, \theta) p_1(\theta)
 \propto \text{Beta}(\tau_1 + a, n_1m-\tau_1 + b),
 \end{align}
 where $\sum_{i=1}^{n_1} y_1^i = \tau_1$.
+Using the specified values of the hyperparameters and observed data the posterior distribution can be found by this equation.
+Figure \ref{fig:ex1} part (a) shows both the prior and posterior plotted in blue: essentially this submodel is entirely accurate about $\theta$.
 
-**Submodel 2** 
+**Submodel 2**
 The second submodel $p_2(\theta, Y_2)$ is such that
 \begin{align}
 \theta &\sim \text{Beta}(c, d) \label{eq:prior2} \\
@@ -594,7 +597,7 @@ Y_2 &\sim \text{Geo}(\theta), \quad i = 1, \ldots, n_2,
 \end{align}
 where $c = 5$ and $d = 4$ are known and $Y_1 = (Y_2^1, \ldots, Y_2^{n_2})$.
 
-We again simulate observed data $Y_2 = y_2$ this time of size $n_2 = 6$, resulting in $y_2 = \{2, 0, 1, 0, 0, 1\}$.
+We again simulate observed data $Y_2 = y_2$, this time of size $n_2 = 6$ resulting in $y_2 = \{2, 0, 1, 0, 0, 1\}$.
 This submodel, like the one before, is conjugate and the posterior distribution is simply
 \begin{align}
 p_2(\theta \, | \, y_2) &\propto p_2(y_2 \, | \, \theta) p_2(\theta)
@@ -604,6 +607,7 @@ p_2(\theta \, | \, y_2) &\propto p_2(y_2 \, | \, \theta) p_2(\theta)
 \propto \text{Beta}(n_2 + c, \tau_2 + d),
 \end{align}
 where $\sum_{i=1}^{n_2} y_2^i = \tau_2$.
+Figure \ref{fig:ex1} part (b) shows that this submodel, both the prior and posterior, are misguided with respect to $\theta$.
 
 ```{r echo=FALSE}
 set.seed(3)
@@ -763,4 +767,5 @@ p3 <- weight_plot(0, 1, sub = "$(c) w_1 = 0, \\hat \\theta = 0.469$")
 cowplot::plot_grid(p1, p2, p3, ncol = 3)
 ```
 
-Example 2.2 shows that, for a simple tractable case, Markov melding behaves as one would hope.
+In this chapter we have motivated the form of the Markov melded posterior distribution and shown via Example 2.2 that, for a simple tractable case, it behaves as one would hope.
+To extend into more realistic situations, in the following chapter we will introduce statistical simulation techniques that allow inference to be conducted on generic Markov melded posterior distributions.

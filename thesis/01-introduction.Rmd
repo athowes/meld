@@ -10,13 +10,15 @@ Using all available data has a range of benefits.
 From a statistical point of view evidence synthesis is typically associated with more precise estimates, just as with an increase in sample size.
 Any single given study or model typically harbors biases.
 Integrating multiple models may help to mitigate the effect of bias in any particular model.
-Furthermore, taking into account multiple sources of evidence gives a fuller and more realistic unstanding of the uncertainty involved.
+Furthermore, taking into account multiple sources of evidence gives a fuller and more realistic understanding of the uncertainty involved.
 
 Evidence synthesis is particularly relevant when the required quantity is difficult to measure directly, or otherwise a challenge to obtain complete, reliable, unbiased information about.
 There are many situations in which it is impossible to carry out a randomised controlled trial or other highly informative study and only partial data sources are available.
 For instance in the monitoring of pandemics, only fragmented, biased surveillance data is available [@presanis2014synthesising].
 Effective public health response depends on up-to-date severity information.
-Evidence synthesis provides a feasible solution using only the available data. 
+Evidence synthesis provides a feasible solution using only the available data.
+
+\newpage
 
 Meta-analysis, also known as systematic review, is one quantitative approach to combining evidence from multiple studies.
 Classically, it has been frequentist in nature and typically focused on combining sources of evidence which are in some sense alike, such as multiple studies of the same kind.
@@ -31,5 +33,5 @@ Using MCMC, @ades2002markov demonstrate the application of MPES to HIV data in t
 
 Markov melding [@goudie2019joining] is a recent approach to MPES which introduces a generic framework for combining modular evidence sources. 
 In Chapter \ref{chapter:model} we explain the route taken by @goudie2019joining to constructing a joint model over all of the considered sources of evidence.
-In Chapter \ref{chapter:comp} we discuss computational methods for conducting inference on this model.
-Finally, we conclude in Chapter \ref{chapter:conc}.
+In Chapter \ref{chapter:comp} we discuss computational methods for conducting inference on this model, applying these methods to synthesising multiple meta-analysis
+Finally, we conclude and discuss directions for further research in Chapter \ref{chapter:conc}.

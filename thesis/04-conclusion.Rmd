@@ -1,13 +1,23 @@
-# Conclusion \label{chapter:conc}
+# Conclusion and further work \label{chapter:conc}
 
-* **Study selection** Throughout this dissertation, as well as @goudie2019joining, it is assumed that the set of studies to be synthesised, and the statistical models used for each study, are prespecified.
-In reality this is often not the case. The order of inclusion is important
+Although Examle 3.2 is a more realistic demonstration of Markov melding than Example 2.2 it is still somewhat idealised.
 
-* **Model misspecification**
-
-* **Scalability**
-Multi-stage Metropolis-within-Gibbs operates sequentially: each stage $\ell$ can only be completed after the previous stage $\ell - 1$ has been.
+**Scalability**
+The examples we considered were only for $M = 2$ submodels.
+There is significant research and practical interest in techniques which "scale-up" Bayesian statistics by facilitating the handling of larger quantities of data.
+Markov melding may be prohibitively computationaly expensive for joining large numbers of submodels.
+The multi-stage Metropolis-within-Gibbs algorithm operates sequentially: each stage $\ell$ can only be completed after the previous stage $\ell - 1$ has been.
 To put it another way, the computational flow is indexed by the chain $\{1, \ldots, M\}$ as in Figure \ref{fig:compflow}.
 An alternative, proposed by @lindsten2017divide in a broader SMC context, is to instead utilise divide-and-conquer by operating on a tree $\mathcal{T}$.
-Particularly for joining many submodels, this may result in significant computational gains as the resulting algorithm would be more easily parallelisable.
+Particularly for joining many (at least $M \geq 4$) submodels, this may result in significant computational gains as the resulting algorithm would be more easily parallelisable.
 
+**Model misspecification and conflict assessment**
+The data we have used was simulated from the model such that for some parameter setting the true data generating mechanism can exactly be recovered.
+This situation is known as the $\mathcal{M}$-closed world [@bernardo2009bayesian], and is comparitively simple.
+Increasingly, statisticians are acknowledging that real world inference typically takes place in the $\mathcal{M}$-open world where their models are to some extent misspecified.
+
+The historic focus of model robustness research in Bayesian statistics has been the prior specification [@watson2016approximate].
+For Markov melding, taking the submodel priors as given, sensitivitiy to the pooling operation could be investigated.
+Although Product of Experts pooling is attractive computationally, the strength of its aggregated beliefs may be cause for concern.
+
+More broadly, submodel joining procedures such as Markov melding have particular reason to be worried by model misspecification. As $M$ models are involved and uncertainty  all of which pose a risk.

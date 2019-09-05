@@ -119,16 +119,19 @@ cowplot::plot_grid(p, o, ncol = 1, rel_heights = c(1, 0.6))
 
 It is typically not possible to generate independent samples from the relevant distribution directly.
 This is especially true for complex models and in high dimensions, as with Markov melding.
+Markov chain Monte Carlo (MCMC) is a flexible and broad class of algorithms for sampling from such probability distributions which otherwise cannot be accessed.
 
-Markov chain Monte Carlo (MCMC) is a flexible and broad class of algorithms for sampling from probability distributions unable to be sampled from directly.
 In MCMC, rather than drawing independent samples, the sample at iteration $i$ depends on that of the previous iteration $i-1$; the result being a a Markov chain of samples.
-By careful specification, the stationary distribution of this Markov chain can be set to correspond to the distribution $\pi$.
-As a result, if the Markov chain is run until it reaches convergence then it can more-or-less be used in place of direct samples from $\pi$.
-There are many diagnostic tools which can be used to check if the chain appears to have converged, the simplest being heuristic examinination of trace-plots which show the positions of the chain over time. However, convergence is not something which is possible to prove so disgression must be taken.
+By careful specification, the stationary distribution of this Markov chain can be set to correspond to the distribution $\pi$ - here referred to as the target distribution.
+As a result, if the Markov chain is run until it reaches convergence then it can, more-or-less, be used in place of direct samples from $\pi$.
+There are many diagnostic tools which can be used to check if the chain appears to have converged, the simplest being heuristic examinination of traceplots which show the positions of the chain over time. 
+However, convergence is not something which is possible to prove so disgression must be taken.
 
-Due to dependence on the previous value, samples from a Markov chain are typically positively correlated, thereby reducing the amount of information each sample contains about $\pi$.
+Due to the dependence on the previous value, samples from a Markov chain are typically positively correlated, thereby reducing the amount of information each sample contains about $\pi$.
 This autocorrelation should be taken into account when calculating the standard error of Monte carlo estimates, see for example @gelman1992inference.
 One popular metric of this sort is the effective sample size (ESS) [@robert2013monte] which can be interpreted as the number of independent samples the correlated samples would be equivalent to.
+
+In the following sections we discuss a range of MCMC algorithms and how they might be applied to Markov melding.
 
 ### Metropolis-Hastings
 
@@ -287,7 +290,8 @@ However, in general, in order to calculate Equation \eqref{eq:linkttp} the prior
 If $p_m(\phi)$ is not tractable, @goudie2019joining suggest using an approximation $\hat p_m(\phi)$ found using kernel density estimation with samples drawn from the prior marginal given by Equation \eqref{eq:priormarginal}. 
 Samples can be drawn by forward Monte Carlo: simulating the statistical relationships (which typically are standard distributions) top-down in the DAG representation of the submodel until the node corresponding to $\phi$ is reached.
 
-In the following example, we demonstrate the use of MCMC for Markov melding two different types of meta-analysis. 
+In the following example, we demonstrate the use of MCMC for Markov melding two different types of meta-analysis.
+For full details of the code used, see `github.com/athowes/meld/tree/master/code`.
 
 *Example 3.2: Metropolis-within-Gibbs for Markov melding*
 
@@ -363,7 +367,7 @@ Assume that $\mu_i$ is the average infection rate for the $i$\textsuperscript{th
 Following @smith1995bayesian, we place an uninformative Gaussian prior on each $\mu_i$, with fixed prior mean $\mu_0 = 0$ and precision $\tau_0 = 0.25$ hyperparameters. 
 The prior on each $\delta_i$ is also Gaussian mean $\kappa$ and precision $\tau$. Uninformative hyperpriors \eqref{eq:hyperprior1} and \eqref{eq:hyperprior2} are placed on both $\kappa$ and $\tau$ with $\kappa_0 = 0$, $\tau = 0.1$, $a = 3$, $b = 1$. 
 Clinical trials aim to assess treatment effectiveness and therefore the mean (log-odds scale) treatment effect $\kappa$ is the parameter of interest. 
-The full model $p_1(\kappa, \upsilon, \delta, \mu, p^C, p^T, r^C, r^T)$ is then
+The full submodel $p_1(\kappa, \upsilon, \delta, \mu, p^C, p^T, r^C, r^T)$ is then
 \begin{align}
 \kappa &\sim \mathcal{N}(\kappa_0, \upsilon_0^{-1}), \label{eq:hyperprior1} \\
 \upsilon &\sim \text{Gamma}(a, b), \label{eq:hyperprior2} \\
@@ -421,7 +425,7 @@ The log-posterior is
 &\propto \sum_{i = 1}^{n_1} \{ (r_i^C - 1) \log p_i^C + (N_1 - r_i^C - 1) \log (1 - p_i^C) \nonumber \\
 &\phantom{\propto} + (r_i^T - 1) \log p_i^T + (N_1 - r_i^T - 1) \log (1 - p_i^T) \nonumber \\
 &\phantom{\propto} - \frac{\omega}{2} \left(\log \frac{p_i^C}{1 - p_i^C} - (\mu_0 - \kappa/2)\right)^2 - \frac{\omega}{2} \left(\log \frac{p_i^T}{1 - p_i^T} - (\mu_0 + \kappa/2)\right)^2 \} \nonumber \\
-&\phantom{\propto} + 2n_1 \omega - \frac{\upsilon_0}{2}(\kappa - \kappa_0)^2 + (a - 1)\log \upsilon - b \upsilon := \ell_1
+&\phantom{\propto} + 2n_1 \omega - \frac{\upsilon_0}{2}(\kappa - \kappa_0)^2 + (a - 1)\log \upsilon - b \upsilon := l_1
 \end{align}
 
 To target the posterior \eqref{eq:ex2post} we use RWM-within-Gibbs.
@@ -450,7 +454,7 @@ df <- data.frame(rbind(vscale, accept))
 rownames(df) <- c("$\\sigma$", "Acceptance")
 colnames(df) <- c("$\\kappa$", "$\\upsilon$", "$p_1^C$", "$p_2^C$", "$p_3^C$", "$p_4^C$", "$p_5^C$", "$p_1^T$", "$p_2^T$", "$p_3^T$", "$p_4^T$", "$p_5^T$")
 
-kable(round(df, 3), booktabs = TRUE, escape = FALSE, caption = "Scaling and resultant acceptance rates for each component.") %>%
+kable(round(df, 3), booktabs = TRUE, escape = FALSE, caption = "Submodel 1 scaling and resultant acceptance rates for each component.") %>%
   kable_styling(position = "center", latex_options = c("scale_down", "hold_position"))
 ```
 
@@ -469,7 +473,7 @@ df <- data.frame(rbind(as.numeric(colMeans(run$chain)), truth, sqrt(colvars)))
 rownames(df) <- c("PM", "Truth", "PSD")
 colnames(df) <- c("$\\kappa$", "$\\upsilon$", "$p_1^C$", "$p_2^C$", "$p_3^C$", "$p_4^C$", "$p_5^C$", "$p_1^T$", "$p_2^T$", "$p_3^T$", "$p_4^T$", "$p_5^T$")
 
-kable(round(df, 3), booktabs = TRUE, escape = FALSE, caption = "Posterior mean (PM), true value and posterior standard deviation (PSD) for each component.") %>%
+kable(round(df, 3), booktabs = TRUE, escape = FALSE, caption = "Submodel 1 posterior mean (PM), true value and posterior standard deviation (PSD) for each component.") %>%
   kable_styling(position = "center", latex_options = c("scale_down", "hold_position"))
 ```
 
@@ -484,8 +488,10 @@ trace_hist <- function(num, latex, mycol = darkblue) {
           plot.margin = unit(c(5.5, 7, 5.5, 5.5), "points"))
   
   p2 <- ggplot(run$chain, aes_string(x = paste0("V", num))) +
-    geom_histogram(alpha = 0.7, bins = 30, fill = lightgrey, col = mycol) +
-    labs(x = latex, y = "Count") +
+    geom_histogram(aes(y = (..count..)/sum(..count..)), 
+                   alpha = 0.7, bins = 30, 
+                   fill = whitesmoke, col = mycol) +
+    labs(x = latex, y = "Proportion") +
     geom_vline(xintercept = truth[num], colour = "black", linetype = "longdash") +
     theme(panel.background = element_blank(),
           axis.line = element_line(colour = "grey"))
@@ -551,18 +557,27 @@ cowplot::plot_grid(p1, p2, ncol = 1)
 \label{fig:ex2dag2}
 \end{figure}
 
-**Submodel 2** 
-For the second submodel we consider a fixed-effects meta-analysis.
-The full model $p_2(\kappa, \lambda, q^C, q^T, r^C, r^T)$ is given by
+**Submodel 2**
+Suppose that a second collection of $n_2 = 10$ trials of the same treatment have been conducted in a different region with treatment and control groups of size $N_2 = 15$.
+It is believed that there is less variablility in the quality of hospitals and therefore that a fixed-effects meta-analysis is the most appropriate model for this data.
+
+The full submodel $p_2(\kappa, \lambda, q^C, q^T, r^C, r^T)$ is given by
 \begin{align}
 \kappa &\sim \mathcal{N}(\kappa_0, \upsilon_0^{-1}),  \\
 \lambda &\sim \mathcal{N}(\lambda_0, \gamma_0^{-1}), \\
 q^C &= \frac{e^{\lambda - \kappa/2}}{1 + e^{\lambda - \kappa/2}}, \; q^T = \frac{e^{\lambda + \kappa/2}}{1 + e^{\lambda + \kappa/2}}, \\
-s_i^C &\sim \text{Bin}(N_2, q^C), \; s_i^T \sim \text{Bin}(N_2, q^T), \quad i = 1, \ldots, n_2.
+s_i^C &\sim \text{Bin}(N_2, q^C), \; s_i^T \sim \text{Bin}(N_2, q^T), \quad i = 1, \ldots, n_2,
 \end{align}
+where $s^T$ and $s^C$ are vectors of length $n_2$ such that the observed data for this submodel is $Y_2 = (s^T, s^C)$.
+This submodel has a similar strucutre to Submodel 1, the difference informally being that the plate has been moved down.
 
-To facilitate Markov melding, inference about the underlying parameters $\kappa$ and $\lambda$ is conducted rather than the probabilies $q^C$ and $q^T$ - which typically would seem to be the more natural option. 
-Indeed for a fixed effects meta-analysis more generally it would likely be preferable to directly place priors on the probabilies (for example a Beta prior would be conjugate to the Binomial likelihood).
+The authors of this study have more informative prior beliefs (following a subjective Bayesian approach) about $\kappa$, setting $\kappa_0 = -0.1$ and $\upsilon_0 = 0.5$.
+The prior on $\lambda$ is similar to that of each of the $\mu_i$ in Submodel 1, such that $\lambda_0 = 0$ and $\gamma_0 = 0.25$.
+
+As with the first submodel, we forward simulate observed data by setting $\kappa = -0.25$ and $\lambda = -1$. The observed data $Y_2 = y_2$ is then $s^C = \{3, 4, 5, 7, 3, 7, 7, 5, 5, 2 \}$ and $s^C = \{3, 4, 5, 7, 3, 7, 7, 5, 5, 2 \}$.
+
+To facilitate Markov melding, inference about the underlying parameters $\kappa$ and $\lambda$ is conducted rather than the probabilities $q^C$ and $q^T$ - which typically would seem to be the more natural option. 
+Indeed for a fixed effects meta-analysis more generally it would likely be preferable to directly place priors on the probabilities (for example a Beta prior would be conjugate to the Binomial likelihood).
 Setting this fact aside, the posterior distribution given $(s^C, s^T)$ is
 \begin{align}
 &\phantom{\propto} p_2(\kappa, \lambda \, | \, s^C, s^T) \nonumber \\
@@ -572,16 +587,23 @@ Setting this fact aside, the posterior distribution given $(s^C, s^T)$ is
 % End line
 &\propto \left(\frac{e^{\lambda - \kappa/2}}{1 + e^{\lambda - \kappa/2}}\right)^{\sum_{i = 1}^{n_2} s_i^C} \left(\frac{1}{1 + e^{\lambda - \kappa/2}}\right)^{2 + n_2N_2 - \sum_{i = 1}^{n_2} s_i^C} \nonumber \\
 &\phantom{\propto}  \cdot \left(\frac{e^{\lambda + \kappa/2}}{1 + e^{\lambda + \kappa/2}}\right)^{\sum_{i = 1}^{n_2} s_i^T} \left(\frac{1}{1 + e^{\lambda + \kappa/2}}\right)^{2 + n_2N_2 - \sum_{i = 1}^{n_2} s_i^T} \nonumber \\
-&\phantom{\propto} \cdot  \exp\left(-\frac{\upsilon_0}{2}(\kappa - \kappa_0)^2\right) \cdot \exp\left(-\frac{\gamma_0}{2}(\lambda - \lambda_0)^2\right),
+&\phantom{\propto} \cdot  \exp\left(-\frac{\upsilon_0}{2}(\kappa - \kappa_0)^2\right) \cdot \exp\left(-\frac{\gamma_0}{2}(\lambda - \lambda_0)^2\right), \label{eq:ex2post2}
 \end{align}
 again using a transformation of variables (with Jacobians $(1 + e^{\lambda - \kappa/2})^{-2}$).
-The log posterior is
+
+Finally, the log posterior is
 \begin{align}
-&\phantom{\propto} = \log p(\kappa, \lambda \, | \, s^C, s^T) \nonumber \\
+&\phantom{\propto} \log p(\kappa, \lambda \, | \, s^C, s^T) \nonumber \\
 &\propto \sum_{i = 1}^{n_2} s_i^C \log \left(\frac{e^{\lambda - \kappa/2}}{1 + e^{\lambda - \kappa/2}}\right) + (2 + n_2N_2 - \sum_{i = 1}^{n_2} s_i^C) \log \left(\frac{1}{1 + e^{\lambda - \kappa/2}}\right) \nonumber \\
 &\phantom{\propto} + \sum_{i = 1}^{n_2} s_i^T \log \left(\frac{e^{\lambda + \kappa/2}}{1 + e^{\lambda + \kappa/2}}\right) + (2 + n_2N_2 - \sum_{i = 1}^{n_2} s_i^T) \log \left(\frac{1}{1 + e^{\lambda + \kappa/2}}\right) \nonumber \\
-&\phantom{\propto} - \frac{\upsilon_0}{2}(\kappa - \kappa_0)^2  - \frac{\gamma_0}{2}(\lambda - \lambda_0)^2 := \ell_2
+&\phantom{\propto} - \frac{\upsilon_0}{2}(\kappa - \kappa_0)^2  - \frac{\gamma_0}{2}(\lambda - \lambda_0)^2 := l_2 
 \end{align}
+
+To target Equation \eqref{eq:ex2post2} we again use the RWM-within-Gibbs algorithm with acceptance rates tuned to 0.44.
+The initialisation values are chosen based on the a-priori means $(\kappa^{(0)}, \lambda^{(0)}) = (0.1, 0)$.
+The number of samples used (1000000) is based on similar considerations to that of Submodel 1 (as we are only estimating a $p = 2$ dimensional mean the required effective samples is much lower).
+The resulting traceplot, histogram and posterior summaries are shown in \ref{fig:ex2submodel2} and Table 3.4 respectively.
+Both $\kappa$ and $\lambda$ are accurately recovered: well within posterior mean plus or minus one posterior standard deviation.
 
 ```{r echo=FALSE}
 run <- readRDS("../output/mcmc_fixed.Rds")
@@ -601,7 +623,7 @@ df <- data.frame(rbind(vscale, accept))
 rownames(df) <- c("$\\sigma$", "Acceptance")
 colnames(df) <- c("$\\kappa$", "$\\lambda$")
 
-kable(round(df, 3), booktabs = TRUE, escape = FALSE, caption = "Scaling and acceptance rate for $\\kappa$ and $\\lambda$.") %>%
+kable(round(df, 3), booktabs = TRUE, escape = FALSE, caption = "Submodel 2 scaling and acceptance rate for $\\kappa$ and $\\lambda$.") %>%
   kable_styling(latex_options = c("hold_position"))
 ```
 
@@ -613,11 +635,11 @@ df <- data.frame(rbind(colMeans(run$chain), truth, sqrt(colvars)))
 rownames(df) <- c("PM", "Truth", "PSD")
 colnames(df) <- c("$\\kappa$", "$\\lambda$")
 
-kable(round(df, 3), booktabs = TRUE, escape = FALSE, caption = "Posterior mean (PM), true value and posterior standard deviation (PSD) for $\\kappa$ and $\\lambda$.") %>%
+kable(round(df, 3), booktabs = TRUE, escape = FALSE, caption = "Submodel 2 posterior mean (PM), true value and posterior standard deviation (PSD) for $\\kappa$ and $\\lambda$.") %>%
   kable_styling(latex_options = c("hold_position"))
 ```
 
-```{r dev = "tikz", echo=FALSE, warning=FALSE, fig.height = 4, fig.cap=paste("Submodel 2 posterior traceplots and histograms for the parameters $\\kappa$ and $\\lambda$, with truth shown on the histogram as a dashed black line.")}
+```{r dev = "tikz", echo=FALSE, warning=FALSE, fig.height = 4, fig.cap=paste("Submodel 2 posterior traceplots and histograms for the parameters $\\kappa$ and $\\lambda$, with truth shown on the histogram as a dashed black line. \\label{fig:ex2submodel2} ")}
 p1 <- trace_hist(1, "$\\kappa$", mycol = darkgreen)
 p2 <- trace_hist(2, "$\\lambda$", mycol = darkgreen)
 
@@ -627,21 +649,25 @@ cowplot::plot_grid(p1, p2, ncol = 1)
 \newpage
 
 **Melded model**
+By Equation \eqref{eq:meldpost}, the Markov melded posterior combining the submodels is 
 \begin{align}
 &\phantom{\propto} p_{\text{meld}}(\kappa, \upsilon, p^C, p^T, \lambda \, | \, r^C, r^T, s^C, s^T) \nonumber \\
-&\propto p_{\text{pool}}(\kappa) \frac{p_1(\kappa, \upsilon, p^C, p^T \, | \, r^C, r^T)}{p_1(\kappa)} \frac{p_1(\kappa, \upsilon, p^C, p^T \, | \, r^C, r^T)}{p_2(\kappa)}
+&\propto p_{\text{pool}}(\kappa) \frac{p_1(\kappa, \upsilon, p^C, p^T \, | \, r^C, r^T)}{p_1(\kappa)} \frac{p_1(\kappa, \upsilon, p^C, p^T \, | \, r^C, r^T)}{p_2(\kappa)}. \label{eq:ex2meld}
 \end{align}
 
+For computational simplicity, Product of Experts pooling $p_{\text{pool}}(\kappa) \propto p_1(\kappa) p_2(\kappa)$ is chosen such that Equation \eqref{eq:ex2meld} simplifies to
 \begin{equation}
 p_{\text{meld}}(\kappa, \upsilon, p^C, p^T, \lambda \, | \, r^C, r^T, s^C, s^T)
-\propto p_1(\kappa, \upsilon, p^C, p^T \, | \, r^C, r^T) p_1(\kappa, \upsilon, p^C, p^T \, | \, r^C, r^T)
+\propto p_1(\kappa, \upsilon, p^C, p^T \, | \, r^C, r^T) p_1(\kappa, \upsilon, p^C, p^T \, | \, r^C, r^T). \label{eq:ex2meld}
 \end{equation}
-
+Taking the logarithm, we have that the log posterior is simply a sum of the submodel log posteriors, $l_1$ and $l_2$
 \begin{align}
 &\phantom{\propto} \log p_{\text{meld}}(\kappa, \upsilon, p^C, p^T, \lambda \, | \, r^C, r^T, s^C, s^T) \nonumber \\
 &\propto \log p_1(\kappa, \upsilon, p^C, p^T \, | \, r^C, r^T) + \log p_2(\kappa, \upsilon, p^C, p^T \, | \, r^C, r^T) \nonumber \\
-&\propto \ell_1 + \ell_2
+&\propto l_1 + l_2.
 \end{align}
+
+To target Equation \eqref{eq:ex2meld} we use 5000000 iterations of RWM-within-Gibbs with each component tuned to 0.44 acceptance rate.
 
 ```{r echo=FALSE}
 run <- readRDS("../output/mcmc_meld.Rds")
@@ -653,16 +679,30 @@ thin <- run$chain[thinfactor*1:(nsim / thinfactor), ]
 ```
 
 ```{r echo=FALSE}
-vscale <- c(0.55, 0.3)
+vscale <- c(0.6, 3.5, 0.3, 0.25, 0.3, 0.25, 0.2, 0.15, 0.15, 0.25, 0.3, 0.2, 0.4)
 accept <- run$accept[3,]
 
 df <- data.frame(rbind(vscale, accept))
 
 rownames(df) <- c("$\\sigma$", "Acceptance")
-colnames(df) <- c("$\\kappa$", "$\\lambda$")
+colnames(df) <- c("$\\kappa$", "$\\upsilon$", "$p_1^C$", "$p_2^C$", "$p_3^C$", "$p_4^C$", "$p_5^C$", 
+                  "$p_1^T$", "$p_2^T$", "$p_3^T$", "$p_4^T$", "$p_5^T$", "$\\lambda$")
 
-kable(round(df, 3), booktabs = TRUE, escape = FALSE, caption = "Scaling and acceptance rate for $\\kappa$ and $\\lambda$.") %>%
-  kable_styling(latex_options = c("hold_position"))
+kable(round(df, 3), booktabs = TRUE, escape = FALSE, caption = "Melded model scaling and acceptance rate for each component.") %>%
+  kable_styling(position = "center", latex_options = c("scale_down", "hold_position"))
+```
+
+```{r echo=FALSE}
+colvars <- Rfast::colVars(as.matrix(run$chain))
+
+df <- data.frame(rbind(colMeans(run$chain), truth, sqrt(colvars)))
+
+rownames(df) <- c("PM", "Truth", "PSD")
+colnames(df) <- c("$\\kappa$", "$\\upsilon$", "$p_1^C$", "$p_2^C$", "$p_3^C$", "$p_4^C$", "$p_5^C$", 
+                  "$p_1^T$", "$p_2^T$", "$p_3^T$", "$p_4^T$", "$p_5^T$", "$\\lambda$")
+
+kable(round(df, 3), booktabs = TRUE, escape = FALSE, caption = "Melded model posterior mean (PM), true value and posterior standard deviation (PSD) for each component.") %>%
+  kable_styling(position = "center", latex_options = c("scale_down", "hold_position"))
 ```
 
 ```{r dev = "tikz", echo=FALSE, warning=FALSE, fig.height = 6, fig.cap=paste("Melded model posterior traceplots and histograms for the parameters $\\kappa$, $\\upsilon$ and $\\lambda$, with truth shown on the histogram as a dashed black line.")}
@@ -673,11 +713,27 @@ p3 <- trace_hist(13, "$\\lambda$", mycol = darkpink)
 cowplot::plot_grid(p1, p2, p3, ncol = 1)
 ```
 
+The posterior means for $\kappa$ are -0.314, -0.221 and -0.224 for Submodel 1, Submodel 2 and the melded model respectively.
+Notably, the melded model estimate is far closer to that of Submodel 2.
+This is relatively unsuprising since Submodel 2 is substantially more informative than Submodel 1.
+Firstly, the sample size is larger: $2N_1n_1 = 100$ patients in $Y_1$ compared with $2N_2n_2 = 300$ patients in $Y_2$.
+Additionally, due to the random-effects (remembering that the data is simulated) there is more variantion in the Submodel 1 data and thus the signal is weaker than for the fixed-effects Submodel 2.
+This result is not a result of Monte carlo error: 100 replications of each simulation results in 
+
+```{r echo=FALSE}
+smith <- as.numeric(readRDS("../output/means_smith.Rds"))
+fixed <- as.numeric(readRDS("../output/means_fixed.Rds"))
+meld <- as.numeric(readRDS("../output/means_meld.Rds"))
+```
+
+The fitted submodel specific parameters in the melded model (a little disappointingly) appear to be essentially the same as when fitting each of the submodels alone.
+Perhaps this is the case 
+
 \newpage
 
 ## Sequential Monte Carlo
 
-In some situations, where the submodels are complex, it may be challenging to directly sample from the full Markov melded posterior using Metropolis-within-Gibbs.
+In some situations, where the submodels are complex, it may be challenging (or computationally inefficient) to directly sample from the full Markov melded posterior using Metropolis-within-Gibbs.
 @goudie2019joining therefore propose a sequential approach, in which information from the submodels is added step-by-step.
 At a high-level, it is an example of Sequential Monte Carlo (SMC) which we outline the connection to here.
 
@@ -756,7 +812,7 @@ Following stage $\ell-1$, samples $(\theta^{(h, \ell-1)})$ for $h = 1, \ldots, H
 In stage $\ell$ a Metropolis-within-Gibbs sampler targeting $p_{\text{meld,}l}(\theta_{\ell-1}, \psi_\ell \, | \, y_1, \ldots, y_\ell)$ on the space $\Theta_\ell = \Theta_{\ell - 1} \times \Psi_\ell$ is constructed. 
 
 Keeping $\theta_{\ell - 1}$ fixed, the parameter $\psi_m$ is updated as usual using a Metropolis-Hastings step. 
-This chain can be initialsed at $\psi_m^{(0)}$. 
+This chain can be initialised at $\psi_m^{(0)}$. 
 The target-to-proposal density ratio is equivalent, with respect to the calculation of $r$ as in Equation \eqref{eq:latentupdate}, to
 \begin{equation}
 R(\theta_{\ell - 1}, \psi_\ell^\star, \theta_{\ell - 1}, \psi_\ell) = p_\ell(\phi, \psi_\ell^\star, y_\ell) \cdot \frac{1}{q(\psi_\ell^\star \, | \, \psi_\ell)}
@@ -772,3 +828,8 @@ The resulting target-to-proposal density ratio simplifies as a result
 &= \frac{p_\ell(\phi^\star, \psi_\ell, y_\ell)}{p_\ell(\phi^\star)} p_{\mathrm{pool}, \ell}(\phi^\star),
 \end{align}
 facilitating fast computation.
+
+In the Markov melding framework, it is assumed that the set of studies to be synthesised and the statistical models for each study $m = 1, \ldots, M$ are prespecified.
+In reality this is often not the case: practitioners may first fit a single submodel and then, based on the results, decide whether (or not) to include further evidence.
+It could be argued that the above multi-stage Metropolis-within-Gibbs algorithm would computationally facilitate this sequential workflow.
+However, for good reason, proponents of meta-analysis have suggested a systematic approach to study selection to avoid bias.
