@@ -127,9 +127,12 @@ truth <- readRDS("../output/truth_smith.Rds") # Import ground truth from Submode
 saveRDS(c(truth, -1), "../output/truth_meld.Rds") # Append GT from S2 and save
 saveRDS(run, "../output/mcmc_meld.Rds") # MCMC output
 
+# Repliactes for posterior mean
 kappa_mean <- function(run) {
   colMeans(run$chain)[1]
 }
 
-meld_means <- replicate(100, kappa_mean(meld(x0, vscale, nsim = 5000000)))
-saveRDS(meld_means, "../output/meld_means.Rds")
+means <- replicate(100, kappa_mean(meld(x0, vscale, nsim = 5000000)))
+
+means <- meld_means
+saveRDS(means, "../output/means_meld.Rds")
