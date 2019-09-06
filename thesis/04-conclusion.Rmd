@@ -1,23 +1,61 @@
 # Conclusion and further work \label{chapter:conc}
 
-Although Examle 3.2 is a more realistic demonstration of Markov melding than Example 2.2 it is still somewhat idealised.
+Markov melding and related approaches are an ongoing area of methodological research with a broad range of possible applications across many domains.
+It is possible that integration into popular (Gibbs-sampling-based) statistical software such as `BUGS` [@lunn2000winbugs] or `JAGS` [@plummer2003jags] could enhance the rate of adoption by practitioners.
 
-**Scalability**
-The examples we considered were only for $M = 2$ submodels.
+In isolation of any computational considerations, Chapter \ref{chapter:model} and Example 2.2 demonstrate the validity of the approach. 
+However, in almost all applied settings the computational techniques discussed in Chapter \ref{chapter:comp} will be required.
+Example 3.2 is a more realistic demonstration than Example 2.2, involving the fitting of two relatively complex submodels.
+That being said, the examples considered in this dissertation are still idealised in a number of ways.
+
+The data we have used was simulated from the model, such that for some parameter setting the true data generating mechanism can exactly be recovered.
+This situation is known as the $\mathcal{M}$-closed world [@bernardo2009bayesian].
+Increasingly, statisticians are acknowledging that real world inference typically takes place in the $\mathcal{M}$-open world where their models are (at least to some extent) misspecified.
+Evidence synthesis procedures such as Markov melding have particular reason to be worried by model misspecification. 
+As $M$ submodels are involved and information flows between the submodels the risks of overall model misspecification are amplified [@jacob2017better].
+
+Preliminary conflict analysis [@presanis2013conflict] between the submodels may provide some security against misspecification, with @goudie2019joining advising that Markov melding should not be used when the exists "strong conflict between evidence components".
+Indeed, @goudie2019joining also suggest one application of Markov melding may be in systematic conflict assessment.
+One aspect of Markov melding which we have not yet discussed is that of model splitting, the inverse operation to model joining [@goudie2019joining].
+Supposing parts of a suitable larger model are found to be in conflict, then model splitting could be used to remove dependence on the offending submodels.
+Alternatively, model splitting may be computationally preferable depending on the cost of fitting the large joint model.
+
+Prior specification has been a historic focus of model robustness research in Bayesian statistics [@watson2016approximate].
+For Markov melding, taking the submodel priors as given, sensitivity (of computational efficiency as well as the outcomes) to the pooling operation could be investigated further.
+Although PoE pooling is attractive in order to simplify some operations, the strength of its aggregated beliefs may be cause for concern.
+
+As a final point, the examples we considered featured only $M = 2$ submodels.
 There is significant research and practical interest in techniques which "scale-up" Bayesian statistics by facilitating the handling of larger quantities of data.
-Markov melding may be prohibitively computationaly expensive for joining large numbers of submodels.
-The multi-stage Metropolis-within-Gibbs algorithm operates sequentially: each stage $\ell$ can only be completed after the previous stage $\ell - 1$ has been.
-To put it another way, the computational flow is indexed by the chain $\{1, \ldots, M\}$ as in Figure \ref{fig:compflow}.
-An alternative, proposed by @lindsten2017divide in a broader SMC context, is to instead utilise divide-and-conquer by operating on a tree $\mathcal{T}$.
+Markov melding may be prohibitively computationally expensive for joining large numbers of submodels.
+In the multi-stage Metropolis-within-Gibbs algorithm each stage $\ell$ can only be completed after the previous stage $\ell - 1$ has been.
+An alternative, proposed by @lindsten2017divide in a broader SMC context, is to instead utilise divide-and-conquer by operating on a tree $\mathcal{T}$ rather than the chain $\{1, \ldots, M\}$.
 Particularly for joining many (at least $M \geq 4$) submodels, this may result in significant computational gains as the resulting algorithm would be more easily parallelisable.
+Figure \ref{fig:treedecomp} shows a proposed computational flow for this problem, the task then being to to define the auxiliary distributions $\pi$ and their domain in order to arrive at $\pi_{1:4} = p_{\text{meld}}$ at the root of the tree.
+Information about the link parameter from each submodel must be incorporated, so $\phi$ will be be present in each independent branch.
+It therefore seems natural that $\pi_1$ be defined on $\Phi \times \Psi_1$, $\pi_2$ on $\Phi \times \Psi_2$ and $\pi_{1,2}$ on $\Phi \times \Psi_1 \times \Psi_2$.
+Further research could investigate whether computationally efficient MWG algorithms could be found in this setting.
 
-**Model misspecification and conflict assessment**
-The data we have used was simulated from the model such that for some parameter setting the true data generating mechanism can exactly be recovered.
-This situation is known as the $\mathcal{M}$-closed world [@bernardo2009bayesian], and is comparitively simple.
-Increasingly, statisticians are acknowledging that real world inference typically takes place in the $\mathcal{M}$-open world where their models are to some extent misspecified.
+\begin{figure}
+\centering
+\begin{tikzpicture}
+    \node (1) at (0,0)   [label=below:{$\pi_{1}$},point];
+    \node (2) at (2,0) [label=below:{$\pi_{2}$},point];
+    \node (3) at (4,0)   [label=below:{$\pi_{3}$},point];
+    \node (4) at (6,0) [label=below:{$\pi_{4}$},point];
+    \node (5) at (1, 1) [label=above:{$\pi_{1,2}$}, point];
+    \node (6) at (5, 1) [label=above:{$\pi_{3,4}$}, point];
+    \node (7) at (3, 2) [label=above:{$\pi_{1:4}$}, point];
+    
+    \path (1) edge  (5);
+    \path (2) edge  (5);
+    \path (3) edge  (6);
+    \path (4) edge  (6);
+    \path (5) edge (7);
+    \path (6) edge (7);
+\end{tikzpicture}
+\caption{Computational flow for divide-and-conquer Markov melding with $M = 4$ submodels.}
+\label{fig:treedecomp}
+\end{figure}
 
-The historic focus of model robustness research in Bayesian statistics has been the prior specification [@watson2016approximate].
-For Markov melding, taking the submodel priors as given, sensitivitiy to the pooling operation could be investigated.
-Although Product of Experts pooling is attractive computationally, the strength of its aggregated beliefs may be cause for concern.
-
-More broadly, submodel joining procedures such as Markov melding have particular reason to be worried by model misspecification. As $M$ models are involved and uncertainty  all of which pose a risk.
+That said, it is unclear as to how often $M \geq 4$ submodels will be available.
+However, it is foreseeable that as data infrastructure improves more generally, it could become increasingly commonplace.
