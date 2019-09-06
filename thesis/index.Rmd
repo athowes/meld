@@ -10,7 +10,7 @@ documentclass: book
 fontsize: 11pt
 bibliography: [citations.bib]
 link-citations: yes
-geometry: "left=2.8cm, right=2.8cm, top=3cm, bottom=3cm"
+geometry: "left=3.5cm, right=2.5cm, top=3cm, bottom=3cm"
 ---
 
 ```{r include=FALSE}
@@ -40,13 +40,13 @@ darkpink <- "#802D5B"
 
 Markov melding is a Bayesian generic approach to combining evidence from multiple sources.
 Each evidence source is modelled by separate submodels, which are then joined by a process called melding.
-This process, its motivations and inference on the resulting melded model are the primary topics of study in this dissertation.
+This process, its motivations and methods of inference on the resulting melded model are the primary topics of study in this dissertation.
 We discuss one simple example of melding, as well as one more involved example involving the synthesis of a Bayesian random-effects meta-analysis with a Bayesian fixed-effects meta-analysis.
-For the later, Monte Carlo computational techniques are used to perform inference.
+For the later example, Monte Carlo computational techniques are used to perform inference.
 
 # Acknowledgements {-}
 
-I would like to thank Dr Murray Pollock, for his continued support and guidance throughout this project. Thanks also go to Dr Robert Goudie for very kindly providing access to the code and data for the paper @goudie2019joining.
+I would like to thank Dr Murray Pollock, for his continued support, guidance and encouragement throughout this project. Thanks also go to Dr Robert Goudie for very kindly providing access to the code and data for the paper @goudie2019joining.
 
 This dissertation was typeset using `bookdown` [@bookdown], plots produced using `ggplot2` [@ggplot2] and written in `R` version 3.5.1 [@r]. 
-The code for this disseration and the algorithms used can be found at the GitHub repo `github.com/athowes/meld`.
+The code for this dissertation and the algorithms used can be found at the GitHub repo `github.com/athowes/meld`.
