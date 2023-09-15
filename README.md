@@ -1,6 +1,8 @@
 # Markov Melding
 ST955: Dissertation, MSc Statistics, University of Warwick
 
+![](pooling.png)
+
 Markov melding, proposed in the paper [Joining and splitting models with Markov melding](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6324725/) by Robert Goudie and colleagues, is a Bayesian computational method for evidence synthesis.
 This masters dissertation is an outline of the method, together with an implementation of the algorithm in `R` applied to a simulated data example. 
 
